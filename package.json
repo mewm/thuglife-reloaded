@@ -5,6 +5,7 @@
     "start": "meteor run"
   },
   "dependencies": {
+    "keymaster": "^1.6.2",
     "meteor-node-stubs": "~0.2.0",
     "pathfinding": "^0.4.18"
   }

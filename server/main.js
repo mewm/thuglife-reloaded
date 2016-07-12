@@ -1,6 +1,6 @@
 import {Meteor} from "meteor/meteor";
 import {MapGenerator} from "../imports/game/world/generator";
-import {settings} from "../imports/game/settings";
+import {GameSettings} from "../imports/game/settings";
 
 WorldMap = new Mongo.Collection('WorldMap');
 Meteor.publish('WorldMap', function()
@@ -14,8 +14,8 @@ Meteor.startup(function()
 	WorldMap.remove({});
 	console.log(WorldMap.find().count());
 	if (WorldMap.find().count() === 0) {
-		
-		const mapGenerator = new MapGenerator(settings);
+
+		const mapGenerator = new MapGenerator(new GameSettings());
 		const world        = mapGenerator.world;
 
 		world.map(function(chunk)
