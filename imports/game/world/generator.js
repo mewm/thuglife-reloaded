@@ -1,4 +1,5 @@
 import {Noise} from "../util/noise";
+import {Random} from "meteor/random";
 
 export class MapGenerator {
 	constructor(settings)
@@ -6,13 +7,13 @@ export class MapGenerator {
 		this.world     = [];
 		this.tweak     = settings.tweak;
 		this.chunkSize = settings.chunkSize;
-		this.tileSize  = settings.tileSize;
+		this.cellSize  = settings.cellSize;
 		this.chunks    = settings.chunks;
 
-		Noise.seed(Math.random());
+		Noise.seed(Math.random()); 
 
 		if(this.chunks > 1) { 
-			for (var x = 0; x < this.chunks; x++) {
+			for (var x = 0; x < this.chunks; x++) { 
 				this.createChunk(x * this.chunkSize, 0);
 				for (var y = 1; y < this.chunks; y++) {
 					this.createChunk(x * this.chunkSize, y * this.chunkSize);
@@ -27,7 +28,7 @@ export class MapGenerator {
 
 	static isForrestable(n)
 	{
-		if (n >= 0.55 && n <= 0.75) {
+		if (n >= 0.55 && n <= 0.725) { 
 			return 1;
 		}
 
@@ -38,8 +39,8 @@ export class MapGenerator {
 	{
 		var chunk = {x: x, y: y, tiles: []};
 
-		for (var _y = y; _y < y + this.chunkSize; _y += this.tileSize) {
-			for (var _x = x; _x < x + this.chunkSize; _x += this.tileSize) {
+		for (var _y = y; _y < y + this.chunkSize; _y += this.cellSize) {
+			for (var _x = x; _x < x + this.chunkSize; _x += this.cellSize) {
 				var value = +Noise.simplex2(_x / this.tweak, _y / this.tweak).toFixed(2);
 				var tree  = MapGenerator.isForrestable(value);
 

@@ -1,66 +1,94 @@
-import {Template} from "meteor/templating";
 import "../imports/startup/routes.js";
+import {Template} from "meteor/templating";
 import {MapRenderer} from "../imports/game/world/renderer";
+import {World} from "../imports/game/world/world";
 import {GameSettings} from "../imports/game/settings";
+import {ReactiveVar} from "meteor/reactive-var";
+import {Random} from "meteor/random";
+import {Session} from "meteor/session";
 import "../node_modules/keymaster";
-import { ReactiveVar } from "meteor/reactive-var";
 
 WorldMap = new Mongo.Collection("WorldMap");
+Players  = new Mongo.Collection("Players");
 
 Template.world.onCreated(function()
 {
 	this.gameSettings = new GameSettings();
-	this.subscribe("WorldMap");
+	this.subscribe("worldmap");
+	this.subscribe("players");
+	
 });
 
 Template.world.onRendered(function()
 {
+	var playerSessionId = getPlayerSessionId();
+	this.subscribe("player", playerSessionId);
 	subscribeToDebugKeys(this);
-	let stage       = new createjs.Stage("world-canvas");
-	let mapRenderer = new MapRenderer(stage, this.gameSettings);
+	const stage       = new createjs.Stage("world-canvas");
+	createjs.Ticker.setFPS(10);
+	const world       = new World(new MapRenderer(stage, this.gameSettings), this.gameSettings);
 	let mapRendered = new ReactiveVar(false);
+	let player        = findOrInsertPlayer(playerSessionId);
 
 	// When map is loaded into the client, render world
 	this.autorun(() =>
 	{
-		console.log('Map loaded, rendering');
 		if (this.subscriptionsReady()) {
-			console.log('Subs ready');
-			WorldMap.find().map((chunk, key) =>
-			{
-				mapRenderer.renderChunk(chunk);
-				mapRenderer.renderTrees(chunk);
-			});
+			world.debug('World loaded');
+			world.installWorld(WorldMap.find().fetch(), player);
 			stage.update();
 			mapRendered.set(true);
 		}
 	});
 
-	// When map is loaded into the client, render world
+	// Toggle debug tool rendering
 	this.autorun(() =>
 	{
 		console.log('Rendering debug tools');
-
-		if ((this.gameSettings.debug.renderTileDebug.get() || this.gameSettings.debug.renderChunkDebug.get()) && mapRendered.get()) {
-			console.log('Debugging changed');
-			WorldMap.find().map((chunk, key) =>
-			{
-				mapRenderer.renderDebugChunk(chunk, key);
-			});
-			stage.update();
+		for (let debugLayer in this.gameSettings.debug) {
+			if (this.gameSettings.debug.hasOwnProperty(debugLayer) && mapRendered.get()) {
+				world.debugVisibility(debugLayer, this.gameSettings.debug[debugLayer].get());
+			}
 		}
+		stage.update();
 	});
+
+	// Bind ticking event
+	createjs.Ticker.addEventListener("tick", world.tick.bind(world));
 });
+
+let findOrInsertPlayer = function(playerSessionId)
+{
+	var player = Players.findOne({session_id: playerSessionId});
+	if (!player) {
+		let playerId = Players.insert({session_id: playerSessionId, x: Math.random() * 1024, y: Math.random() * 1024});
+		player       = Players.findOne(playerId);
+	}
+	return player;
+};
 
 let subscribeToDebugKeys = function(template)
 {
 	key('0', () =>
 	{
-		template.gameSettings.renderTileDebug.set(true);
+		let layer = template.gameSettings.debug.tile;
+		layer.set(!layer.get());
 	});
 
 	key('1', () =>
 	{
-		template.gameSettings.renderChunkDebug.set(true);
+		let layer = template.gameSettings.debug.chunk;
+		layer.set(!layer.get());
 	});
 };
+
+let getPlayerSessionId = function()
+{
+	let playerSessionId = Session.get('playerSessionId');
+	if (!playerSessionId) {
+		let randomId = playerSessionId = Random.id();
+		Session.set('playerSessionId', randomId);
+	}
+	return playerSessionId;
+};
+

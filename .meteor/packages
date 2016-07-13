@@ -23,3 +23,6 @@ arillo:flow-router-helpers
 zimme:active-route
 kadira:flow-router
 sorenpeterson:createjs
+reactive-dict
+session
+insecure
