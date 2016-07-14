@@ -4,11 +4,17 @@ import {GameSettings} from "../imports/game/settings";
 
 
 WorldMap = new Mongo.Collection('WorldMap');
+PlayerEvents = new Mongo.Collection('PlayerEvents');
 Players  = new Mongo.Collection('Players');
 
-Meteor.publish('players', function()
+Meteor.publish('thug_players', function(playerId)
 {
-	return Players.find();
+	return Players.find({ _id: { $ne: playerId } });
+});
+
+Meteor.publish('player_events', function()
+{
+	return PlayerEvents.find();
 });
 
 Meteor.publish('player', function(sessionId)
@@ -26,7 +32,9 @@ Meteor.startup(function()
 {
 	WorldMap.remove({});
 	Players.remove({});
+	PlayerEvents.remove({});
 	console.log(WorldMap.find().count());
+	
 	if (WorldMap.find().count() === 0) {
 
 		const mapGenerator = new MapGenerator(new GameSettings());
@@ -41,3 +49,5 @@ Meteor.startup(function()
 		});
 	}
 });
+
+Kadira.connect('w5wdSz9dKFKBs3HMY', 'd29c4d76-de41-44f0-8ace-cb20ed1795dd');

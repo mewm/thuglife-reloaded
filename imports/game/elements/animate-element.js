@@ -38,7 +38,7 @@ export class AnimateElement extends BaseElement {
 		this.isThugging = action;
 		action.perform(this, (action) =>
 		{
-			console.log(this.queue);
+// 			console.log(this.queue);
 			this.actionsPerformed.push(this.isThugging);
 			this.isThugging = null;
 		});

@@ -1,42 +1,44 @@
 import "../imports/startup/routes.js";
 import {Template} from "meteor/templating";
-import {MapRenderer} from "../imports/game/world/renderer";
 import {World} from "../imports/game/world/world";
 import {GameSettings} from "../imports/game/settings";
 import {ReactiveVar} from "meteor/reactive-var";
 import {Random} from "meteor/random";
-import {Session} from "meteor/session";
 import "../node_modules/keymaster";
+import PIXI from "../node_modules/pixi.js";
 
-WorldMap = new Mongo.Collection("WorldMap");
-Players  = new Mongo.Collection("Players");
+WorldMap     = new Mongo.Collection("WorldMap");
+Players      = new Mongo.Collection("Players");
+PlayerEvents = new Mongo.Collection("PlayerEvents");
 
 Template.world.onCreated(function()
 {
 	this.gameSettings = new GameSettings();
 	this.subscribe("worldmap");
-	this.subscribe("players");
-	
+
+	this.subscribe("player_events");
+
 });
 
 Template.world.onRendered(function()
 {
-	var playerSessionId = getPlayerSessionId();
-	this.subscribe("player", playerSessionId);
+	let player = findOrInsertPlayer();
+	this.subscribe("thug_players", player._id);
 	subscribeToDebugKeys(this);
-	const stage       = new createjs.Stage("world-canvas");
-	createjs.Ticker.setFPS(10);
-	const world       = new World(new MapRenderer(stage, this.gameSettings), this.gameSettings);
+
+	let renderer = PIXI.autoDetectRenderer(this.gameSettings.chunks * 1024, this.gameSettings.chunks * 1024, {backgroundColor: 0x34495e});
+	$('#canvas').append(renderer.view);
+	const world     = new World(this.gameSettings, renderer);
 	let mapRendered = new ReactiveVar(false);
-	let player        = findOrInsertPlayer(playerSessionId);
 
 	// When map is loaded into the client, render world
 	this.autorun(() =>
 	{
+		console.log('Autorun1');
 		if (this.subscriptionsReady()) {
 			world.debug('World loaded');
-			world.installWorld(WorldMap.find().fetch(), player);
-			stage.update();
+			world.installWorld(WorldMap.find({}, {reactive: false}).fetch(), player, Players.find({}, {reactive: false}).fetch(), PlayerEvents, Players);
+			renderer.render(world.stage);
 			mapRendered.set(true);
 		}
 	});
@@ -50,20 +52,18 @@ Template.world.onRendered(function()
 				world.debugVisibility(debugLayer, this.gameSettings.debug[debugLayer].get());
 			}
 		}
-		stage.update();
+		renderer.render(world.stage);
 	});
 
-	// Bind ticking event
-	createjs.Ticker.addEventListener("tick", world.tick.bind(world));
 });
 
-let findOrInsertPlayer = function(playerSessionId)
+let findOrInsertPlayer = function()
 {
-	var player = Players.findOne({session_id: playerSessionId});
-	if (!player) {
-		let playerId = Players.insert({session_id: playerSessionId, x: Math.random() * 1024, y: Math.random() * 1024});
-		player       = Players.findOne(playerId);
-	}
+	// 	var player = Players.findOne({session_id: playerSessionId});
+	// 	if (!player) {
+	let playerId = Players.insert({x: 100, y: 100});
+	player       = Players.findOne(playerId);
+	// 	}
 	return player;
 };
 
@@ -82,13 +82,4 @@ let subscribeToDebugKeys = function(template)
 	});
 };
 
-let getPlayerSessionId = function()
-{
-	let playerSessionId = Session.get('playerSessionId');
-	if (!playerSessionId) {
-		let randomId = playerSessionId = Random.id();
-		Session.set('playerSessionId', randomId);
-	}
-	return playerSessionId;
-};
 

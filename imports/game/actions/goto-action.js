@@ -10,7 +10,7 @@ export class GoTo extends BaseAction {
 	{
 		animateElement.moveTo(this.destination);
 		if (animateElement.position == this.destination) {
-			console.log("Performance done!")
+// 			console.log("Performance done!")
 			callback();
 		}
 	}

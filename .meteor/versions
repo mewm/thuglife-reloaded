@@ -23,6 +23,7 @@ diff-sequence@1.0.6
 ecmascript@0.4.7
 ecmascript-runtime@0.2.12
 ejson@1.0.12
+email@1.0.15
 es5-shim@4.5.13
 fastclick@1.0.12
 geojson-utils@1.0.9
@@ -34,12 +35,17 @@ id-map@1.0.8
 insecure@1.0.7
 jquery@1.11.9
 kadira:blaze-layout@2.3.0
+kadira:debug@3.2.2
 kadira:flow-router@2.12.1
+kadira:runtime-dev@0.0.1
 launch-screen@1.0.12
 livedata@1.0.18
+localstorage@1.0.11
 logging@1.0.14
 meteor@1.1.16
 meteor-base@1.0.4
+meteorhacks:kadira@2.29.1
+meteorhacks:meteorx@1.4.1
 minifier-css@1.1.13
 minifier-js@1.1.13
 minimongo@1.0.17
@@ -49,6 +55,7 @@ modules@0.6.5
 modules-runtime@0.6.5
 mongo@1.1.9_1
 mongo-id@1.0.5
+mongo-livedata@1.0.12
 npm-mongo@1.4.45
 observe-sequence@1.0.12
 ordered-dict@1.0.8

@@ -1,5 +1,4 @@
 import {Noise} from "../util/noise";
-import {Random} from "meteor/random";
 
 export class MapGenerator {
 	constructor(settings)
@@ -10,7 +9,7 @@ export class MapGenerator {
 		this.cellSize  = settings.cellSize;
 		this.chunks    = settings.chunks;
 
-		Noise.seed(Math.random()); 
+		Noise.seed(Math.random());
 
 		if(this.chunks > 1) { 
 			for (var x = 0; x < this.chunks; x++) { 

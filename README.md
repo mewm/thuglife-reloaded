@@ -1,1 +1,2 @@
 # thuglife-reloaded readmez
+

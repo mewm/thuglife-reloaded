@@ -11,7 +11,6 @@ export class BaseElement {
 	{
 		this._id       = id;
 		this._position = position;
-		this.positionAbs = position;
 		this._world    = world;
 		this._shape    = shape;
 	}

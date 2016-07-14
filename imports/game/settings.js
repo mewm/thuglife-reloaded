@@ -6,7 +6,9 @@ export class GameSettings {
 		this.tweak     = 8096;
 		this.chunkSize = 1024;
 		this.cellSize  = 32;
-		this.chunks    = 2;
+		this.chunks    = 1;
+		
+		
 
 		this.debug = {
 			tile: new ReactiveVar(false),

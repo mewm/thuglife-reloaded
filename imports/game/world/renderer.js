@@ -23,36 +23,8 @@ export class MapRenderer {
 		};
 	}
 
-	render(layer, element)
-	{
-		this.layers[layer].addChild(element.shape);
-	}
 
-	createLayer()
-	{
-		return new createjs.Container();
-	}
 
-	update()
-	{
-		this.stage.update();
-	}
-
-	createChunkShape(chunk)
-	{
-		let chunkShape = this.createLayer();
-		for (let index = 0; index < chunk.tiles.length; index++) {
-			let tile  = chunk.tiles[index];
-			let color = MapRenderer.getColorFromNoiseValue(tile.noise);
-			let shape = new createjs.Shape();
-			shape.x   = tile.x;
-			shape.y   = tile.y;
-			shape.graphics.beginFill(color).drawRect(0, 0, this.settings.cellSize, this.settings.cellSize);
-			chunkShape.addChild(shape);
-		}
-
-		return chunkShape;
-	}
 
 	createPlayerShape(player)
 	{
@@ -60,8 +32,8 @@ export class MapRenderer {
 		let playerShape = new createjs.Shape();
 		var color       = "rgb(" + Math.round(Math.random() * 255) + "," + Math.round(Math.random() * 255) + "," + Math.round(Math.random() * 255) + ")";
 		playerShape.graphics.beginFill(color).drawCircle(16, 16, 16);
-		playerShape.x = player.x;
-		playerShape.y = player.y;
+		playerShape.x = player.position.x;
+		playerShape.y = player.position.y;
 		container.addChild(playerShape);
 
 		return container;
