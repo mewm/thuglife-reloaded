@@ -5,6 +5,7 @@ import PF from "../../../node_modules/pathfinding";
 import {Chunk} from "./chunk";
 import PIXI from "../../../node_modules/pixi.js";
 import {ElementFactory} from "./elementFactory";
+import {Camera} from "./camera";
 
 export class World {
 	/**
@@ -21,22 +22,46 @@ export class World {
 		this.settings       = gameSettings;
 		this.elementFactory = new ElementFactory(this.settings);
 
-		this.renderer          = renderer;
-		this.stage             = new PIXI.Container();
-		this.stage.interactive = true;
+		this.renderer = renderer;
 
-		this.layers = {
-			chunks: null,
-			trees: null,
-			thugPlayers: null,
-			player: null,
+		// Create world container
+		this.worldContainer   = this.elementFactory.createEmptyContainer();
+		this.worldLayers      = {
+			chunks: this.elementFactory.createEmptyContainer(),
+			trees: this.elementFactory.createEmptyContainer(),
+			thugPlayers: this.elementFactory.createEmptyContainer()
 		};
+		this.debugWorldLayers = {
+			tile: this.elementFactory.createEmptyContainer(),
+			chunk: this.elementFactory.createEmptyContainer()
+		};
+
+		// To world container
+		_.map(this.worldLayers, (layer, key) =>
+		{
+			this.worldContainer.addChild(layer);
+		});
+		_.map(this.debugWorldLayers, (layer) =>
+		{
+			this.worldContainer.addChild(layer);
+		});
+
+		// Camera 
+		this.cameraContainer             = new PIXI.Container();
+		this.cameraContainer.interactive = true;
+		this.camera       = new Camera(0, 0, this.settings.canvasW, this.settings.canvasH, this.settings.chunks * this.settings.chunkSize, this.settings.chunks * this.settings.chunkSize);
+		this.cameraContainer.position.x = 512;
+		this.cameraContainer.position.y = 512;
+		this.camera.world = this.worldContainer;
+
+		this.cameraContainer.addChild(this.worldContainer);
+		
 
 		this.ticker = new PIXI.ticker.Ticker();
 		this.ticker.add(this.tick.bind(this));
-		this.ticker.speed = 0.1;
+		// 		this.ticker.speed = 0.1;
 		this.ticker.start();
-
+		
 	}
 
 	/**
@@ -48,89 +73,100 @@ export class World {
 		// Actions carried out each tick (aka frame)
 		if (!event.paused) {
 			if (this.player !== null) {
+				this.camera.tick();
 				this.player.tick(event);
-				this.thugPlayers.map((thugPlayer) => {
+				this.thugPlayers.map((thugPlayer) =>
+				{
 					thugPlayer.tick();
 				});
 			}
-			this.renderer.render(this.stage);
+			this.renderer.render(this.cameraContainer);
 		}
 
 	}
 
 	installWorld(chunks, player, thugPlayers, playerEventCollection, playerCollection)
 	{
-		console.log('player', player);
-		console.log('players', thugPlayers);
 		// Install chunks
-		this.layers.chunks = this.elementFactory.createEmptyContainer();
 		chunks.map((primitiveChunk) =>
 		{
 			let pathFinder = new PF.Grid(this.settings.chunkSize, this.settings.chunkSize);
-			let chunk      = new Chunk(new Vector(primitiveChunk.x, primitiveChunk.y), primitiveChunk.tiles, pathFinder);
-			chunk.shape    = this.elementFactory.createSingleChunkContainer(chunk);
+
+			for (let index = 0; index < primitiveChunk.tiles.length; index++) {
+				let tile = primitiveChunk.tiles[index];
+
+				if (tile.noise > 0.50 && tile.noise <= 0.75) {
+					pathFinder.setWalkableAt(tile.x / this.settings.cellSize, tile.y / this.settings.cellSize, false);
+					tile.walkable = false;
+				}
+			}
+
+			let chunk   = new Chunk(new Vector(primitiveChunk.x, primitiveChunk.y), primitiveChunk.tiles, pathFinder);
+			chunk.shape = this.elementFactory.createSingleChunkContainer(chunk);
 			this.chunks.push(chunk);
-			this.layers.chunks.addChild(chunk.shape);
+			this.worldLayers.chunks.addChild(chunk.shape);
 		});
-		this.layers.chunks.cacheAsBitmap = true;
-		this.stage.addChild(this.layers.chunks);
+		this.worldLayers.chunks.cacheAsBitmap = true;
 
 		// Install trees
-		this.layers.trees = this.elementFactory.createEmptyContainer();
 		chunks.map((primitiveChunk) =>
 		{
 			for (let index = 0; index < primitiveChunk.tiles.length; index++) {
 				let tile = primitiveChunk.tiles[index];
+
 				if (tile.tree === null) {
 					continue;
 				}
 				let treeShape = this.elementFactory.createTreeContainer(tile);
-				this.layers.trees.addChild(treeShape);
+				this.worldLayers.trees.addChild(treeShape);
 				let tree = {name: 'tree', shape: treeShape};
 				this.objects.push(tree);
 
 			}
 		});
-		this.layers.trees.cacheAsBitmap = true;
-		this.stage.addChild(this.layers.trees);
+		this.worldLayers.trees.cacheAsBitmap = false;
 
 		// Install player
-		this.player        = new Player(player._id, new Vector(player.x, player.y), this, playerEventCollection);
-		this.player.shape  = this.elementFactory.createPlayerContainer(this.player);
-		this.layers.player = this.player.shape;
-		this.stage.addChild(this.layers.player);
-		this.stage.on('mousedown', this.player.onClick.bind(this.player));
+		this.player       = new Player(player._id, new Vector(player.x, player.y), this, playerEventCollection);
+		this.player.shape = this.camera.follower = this.elementFactory.createPlayerContainer(this.player);
+		console.log(this.player);
+		this.worldContainer.addChild(this.player.shape);
+		
+		this.cameraContainer.mousedown = this.player.onClick.bind(this.player);
+		this.cameraContainer.tap = this.player.onClick.bind(this.player);
 
 		// Install ThugPlayers
-		this.layers.thugPlayers = this.elementFactory.createEmptyContainer();
 		thugPlayers.map((thugPlayer) =>
 		{
 			this.loadPlayer(thugPlayer);
 		});
-		
+
 		// Listen to new thug players
-		var self = this;
+		var self           = this;
 		let thugPlayerList = this.thugPlayers;
 		playerCollection.find().observe({
-			added: (document) => {
+			added: (document) =>
+			{
 				self.loadPlayer(document);
 			}
 		});
-		
+
 		// Listen to thug player clicks
-		playerEventCollection.find({ a: 'c'}).observe({
-			added: (document) => {
-				let targetPlayer = _.findWhere(thugPlayerList, { _id: document['t'] });
-				if(targetPlayer !== undefined) {
+		playerEventCollection.find({a: 'c'}).observe({
+			added: (document) =>
+			{
+				let targetPlayer = _.findWhere(thugPlayerList, {_id: document['t']});
+				if (targetPlayer !== undefined) {
 					targetPlayer.onClick(document);
 				}
 			}
 		});
-		this.stage.addChild(this.layers.thugPlayers);
 
 		// Load debug world
-		// 		this.renderer.renderDebugWorld(chunks);
-
+		this.debugWorldLayers.chunk.cacheAsBitmap = true;
+		this.debugWorldLayers.tile.cacheAsBitmap  = true;
+		this.debugWorldLayers.tile.addChild(this.elementFactory.createTileDebugContainer(chunks));
+		this.debugWorldLayers.chunk.addChild(this.elementFactory.createChunkDebugContainer(chunks));
 	}
 
 	loadPlayer(thugPlayer)
@@ -138,12 +174,21 @@ export class World {
 		let player   = new ThugPlayer(thugPlayer._id, new Vector(thugPlayer.x, thugPlayer.y), this);
 		player.shape = this.elementFactory.createPlayerContainer(player);
 		this.thugPlayers.push(player);
-		this.layers.thugPlayers.addChild(player.shape);
+		this.worldLayers.thugPlayers.addChild(player.shape);
 	}
 
 	debugVisibility(key, toggle)
 	{
-		// 		this.renderer.setDebugLayerVisibility(key, toggle);
+		this.setDebugLayerVisibility(key, toggle);
+	}
+
+	/**
+	 * @param key
+	 * @param visibility
+	 */
+	setDebugLayerVisibility(key, visibility)
+	{
+		this.debugWorldLayers[key].visible = visibility;
 	}
 
 	debug(message)

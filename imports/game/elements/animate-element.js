@@ -5,7 +5,7 @@ export class AnimateElement extends BaseElement {
 	constructor(id, position, world, shape)
 	{
 		super(id, position, world, shape);
-		this.queue            = [];
+		this._queue            = [];
 		this.isThugging       = null;
 		this.actionsPerformed = [];
 		this.speed            = 1;
@@ -13,13 +13,13 @@ export class AnimateElement extends BaseElement {
 
 	queue(action)
 	{
-		this.queue.push(action);
-		return this.queue;
+		this._queue.push(action);
+		return this._queue;
 	}
 
 	next()
 	{
-		return this.queue.shift();
+		return this._queue.shift();
 	}
 
 	tick(event)

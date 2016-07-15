@@ -14,21 +14,20 @@ export class Player extends AnimateElement {
 	 */
 	constructor(id, position, world, playerEventCollection, shape)
 	{
-		console.log('lol,', playerEventCollection);
 		super(id, position, world, shape);
 		console.log('Player constructed');
 		this.playerEventCollection = playerEventCollection;
+		this._queue = [];
+		this._timers = [];
 
 	}
 
 	onClick(event)
 	{
-		console.log('ce', event);
 		let chunkSize = this.world.settings.chunkSize;
 		let cellSize  = this.world.settings.cellSize;
-
-		let clickX = event.data.global.x + 8;
-		let clickY = event.data.global.y - 82;
+		let clickX = event.data.global.x + (this.world.camera.world.pivot.x - 512);
+		let clickY = event.data.global.y + (this.world.camera.world.pivot.y - 512);
 
 		this.playerEventCollection.insert({a: 'c', t: this.id, x: clickX, y: clickY});
 		let originX = Math.floor((chunkSize / cellSize) / (chunkSize / this.shape.x));
@@ -50,10 +49,28 @@ export class Player extends AnimateElement {
 
 		let path = finder.findPath(originX, originY, moveX, moveY, pathFinder);
 
+		this._queue = _.reject(this._queue, (item) => 
+		{
+			return item.constructor.name == "GoTo";
+		});
+
+		this._timers.map((timer) => 
+		{
+			clearTimeout(timer);
+		});
+		
+
+		let i = 0;
 		path.map((v) =>
 		{
 			let vector = new Vector(v[0], v[1]);
-			super.queue(new GoTo(vector));
+			let timeout = setTimeout(() => {
+				super.queue(new GoTo(vector));
+			}, i);
+
+			this._timers.push(timeout);
+
+			i += 100;
 		});
 	}
 } 

@@ -6,7 +6,18 @@ export class ElementFactory {
 		this.settings = settings;
 		this.textures = {
 			bunny: PIXI.Texture.fromImage("bunny.png"),
-		}
+		};
+
+		this.noiseColors = [
+			{ name: "Deep Water", color: 0x0000cc },
+			{ name: "Water", color: 0x0066ff },
+			{ name: "Sand", color: 0xffff99 },
+			{ name: "Grass", color: 0x009933 },
+			{ name: "Woodland", color: 0x006600 },
+			{ name: "Mountain", color: 0xa9a9a9 },
+			{ name: "Snow", color: 0xffffff }
+		];
+
 	}
 
 	createEmptyContainer()
@@ -20,11 +31,11 @@ export class ElementFactory {
 		for (let index = 0; index < chunk.tiles.length; index++) {
 			let tile = chunk.tiles[index];
 
-			let chunkGraphics = new PIXI.Graphics();
-			chunkGraphics.position.x   = tile.x;
-			chunkGraphics.position.y   = tile.y;
+			let chunkGraphics        = new PIXI.Graphics();
+			chunkGraphics.position.x = tile.x;
+			chunkGraphics.position.y = tile.y;
 
-			let color = ElementFactory.getColorFromNoiseValue(tile.noise);
+			let color = tile._walkable == false ? 0x000000 : this.getColorFromNoiseValue(tile.noise);
 			chunkGraphics.beginFill(color).drawRect(0, 0, this.settings.cellSize, this.settings.cellSize).endFill();
 
 			chunkContainer.addChild(chunkGraphics);
@@ -37,16 +48,17 @@ export class ElementFactory {
 	{
 		let playerContainer = this.createEmptyContainer();
 
-		let image      = PIXI.Texture.fromImage("bunny.png");
-		let playerSprite = new PIXI.Sprite(image);
-		playerContainer.position.x   = player.position.x;
-		playerContainer.position.y   = player.position.y;
-
-		let text = new PIXI.Text(player.id, {font : '30px Arial', fill : 0xffffff, stroke: 0x000000, strokeThickness: 3});
-		text.x   = playerContainer.position.x - 32;
-		text.y   = playerContainer.position.y - 32;
-
+		let image                  = PIXI.Texture.fromImage("bunny.png");
+		let playerSprite           = new PIXI.Sprite(image);
+		playerSprite.x = Math.round(image.width/2);
+		playerSprite.y = -Math.round(image.height/2);
+		playerContainer.position.x = player.position.x;
+		playerContainer.position.y = player.position.y;
 		playerContainer.addChild(playerSprite);
+
+		let text = new PIXI.Text(player.id, {font: '10px Impact', fill: 0xffffff, stroke: 0x000000, strokeThickness: 3});
+		text.x = playerSprite.x + ((image.width/2)-(text.width/2));
+		text.y = playerSprite.y + image.height;
 		playerContainer.addChild(text);
 
 		return playerContainer;
@@ -55,7 +67,7 @@ export class ElementFactory {
 	createTreeContainer(tile)
 	{
 		//var tempTree = new createjs.Shape();
-		let treeContainer = this.createEmptyContainer();
+		let treeContainer        = this.createEmptyContainer();
 		treeContainer.position.x = tile.x;
 		treeContainer.position.y = tile.y;
 
@@ -67,27 +79,11 @@ export class ElementFactory {
 		return treeContainer;
 	}
 
-	// Debugging
-	renderDebugWorld(mapCollection)
-	{
-		this.renderTileDebugLayer(mapCollection);
-		this.renderChunkDebugLayer(mapCollection);
-	}
-
-	/**
-	 * @param key
-	 * @param visibility
-	 */
-	setDebugLayerVisibility(key, visibility)
-	{
-		this.debugLayers[key].visible = visibility;
-	}
-
 	/**
 	 */
-	renderTileDebugLayer(mapCollection)
+	createTileDebugContainer(mapCollection)
 	{
-		let debugConta = new this.createEmptyContainer();
+		let debugContainer = new this.createEmptyContainer();
 		// Tile Outline
 		mapCollection.map((chunk) =>
 		{
@@ -95,41 +91,42 @@ export class ElementFactory {
 
 			for (let index = 0; index < chunk.tiles.length; index++) {
 				let tile = chunk.tiles[index];
-				let text = new createjs.Text(index, "10px Tahoma", "#FFFFFF");
+				let text = new PIXI.Text(index, {font: '10px Arial', fill: 0xffffff, stroke: 0x000000, strokeThickness: 1});
 				text.x   = tile.x + 10;
 				text.y   = tile.y + 10;
 
 				let line1 = new PIXI.Graphics();
 				line1.beginFill(0xd3d3d3)
-					.lineStyle(10, 0xd3d3d3, 1)
+					.lineStyle(1, 0xd3d3d3, 1)
 					.moveTo(tile.x, tile.y)
 					.lineTo(tile.x + 32, tile.y)
 					.endFill();
 
 				let line2 = new PIXI.Graphics();
-				line1.beginFill(0xd3d3d3)
-					.lineStyle(10, 0xd3d3d3, 1)
+				line2.beginFill(0xd3d3d3)
+					.lineStyle(1, 0xd3d3d3, 1)
 					.moveTo(tile.x, tile.y)
 					.lineTo(tile.x, tile.y + 32)
 					.endFill();
 
 				tileContainer.addChild(text);
 				tileContainer.addChild(line1);
-				tileContainer.addChild(line1);
+				tileContainer.addChild(line2);
 			}
-			tileContainer.addChild(tileContainer);
+			
+			debugContainer.addChild(tileContainer);
 		});
 
-		return tileContainer;
+		return debugContainer;
 
 	}
 
 	/**
 	 * @param mapCollection
 	 */
-	renderChunkDebugLayer(mapCollection)
+	createChunkDebugContainer(mapCollection)
 	{
-		let debugContainer  = new this.createEmptyContainer();
+		let debugContainer = new this.createEmptyContainer();
 		mapCollection.map((chunk) =>
 		{
 			// Chunk Outline
@@ -170,26 +167,32 @@ export class ElementFactory {
 
 	}
 
-	static getColorFromNoiseValue(n)
+	getColorFromNoiseValue(n)
 	{
-		var color;
+		let type = this.getCellTypeFromNoiseValue(n);
+		return this.noiseColors[type].color;
+	}
+
+	getCellTypeFromNoiseValue(n) {
+
+		let type;
 
 		if (n <= -0.5) {
-			color = 0x0000cc;
+			type = 0; // Deep Water
 		} else if (n > -0.5 && n <= 0) {
-			color = 0x0066ff;
+			type = 1; // Water
 		} else if (n > 0 && n <= 0.15) {
-			color = 0xffff99;
+			type = 2; // Sand
 		} else if (n > 0.15 && n <= 0.50) {
-			color = 0x009933;
+			type = 3; // Grass
 		} else if (n > 0.50 && n <= 0.75) {
-			color = 0x006600;
+			type = 4; // Woodland
 		} else if (n > 0.75 && n <= 0.90) {
-			color = 0xa9a9a9;
+			type = 5; // Mountain
 		} else if (n > 0.90) {
-			color = 0xffffff;
+			type = 6; // Snow
 		}
 
-		return color;
+		return type;
 	}
 }

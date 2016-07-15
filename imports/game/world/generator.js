@@ -9,7 +9,9 @@ export class MapGenerator {
 		this.cellSize  = settings.cellSize;
 		this.chunks    = settings.chunks;
 
-		Noise.seed(Math.random());
+		this.seed = 0.86810414;
+
+		Noise.seed(this.seed);
 
 		if(this.chunks > 1) { 
 			for (var x = 0; x < this.chunks; x++) { 
@@ -25,10 +27,12 @@ export class MapGenerator {
 		console.log('Done generation');
 	}
 
-	static isForrestable(n)
+	static isForrestable(bedrockValue, treeValue)
 	{
-		if (n >= 0.55 && n <= 0.725) { 
-			return 1;
+		if (bedrockValue >= 0.55 && bedrockValue <= 0.725) { 
+			if(treeValue >= 0.55 && treeValue <= 0.6) {
+				return 1;
+			}
 		}
 
 		return null;
@@ -38,16 +42,24 @@ export class MapGenerator {
 	{
 		var chunk = {x: x, y: y, tiles: []};
 
+		let tweak = this.tweak;
+
 		for (var _y = y; _y < y + this.chunkSize; _y += this.cellSize) {
 			for (var _x = x; _x < x + this.chunkSize; _x += this.cellSize) {
-				var value = +Noise.simplex2(_x / this.tweak, _y / this.tweak).toFixed(2);
-				var tree  = MapGenerator.isForrestable(value);
+				var bedrockValue = +Noise.simplex2(_x / tweak, _y / tweak).toFixed(2);
 
-				chunk.tiles.push({x: _x, y: _y, noise: value, tree: tree});
+				var treeValue = +Noise.simplex2(_x / tweak/2, _y / tweak/2).toFixed(2);
+				var tree  = MapGenerator.isForrestable(bedrockValue, treeValue);
+
+				chunk.tiles.push({x: _x, y: _y, noise: bedrockValue, tree: tree});
+
+				tweak += Math.random() > 0.5 ? 32 : -32;
 			}
 		}
 
 		this.world.push(chunk);
+
+		this.tweak += Math.random() > 0.5 ? 256 : -256;
 	}
 
 }

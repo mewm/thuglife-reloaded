@@ -6,13 +6,16 @@ export class GameSettings {
 		this.tweak     = 8096;
 		this.chunkSize = 1024;
 		this.cellSize  = 32;
-		this.chunks    = 1;
+		this.chunks    = 2;  
+		
+		this.canvasW = 1024;
+		this.canvasH = 1024;
 		
 		
 
 		this.debug = {
-			tile: new ReactiveVar(false),
-			chunk: new ReactiveVar(false)
+			tile: new ReactiveVar(true),
+			chunk: new ReactiveVar(true)
 		}
 	}
 }
