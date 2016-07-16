@@ -1,0 +1,84 @@
+html, body {
+	margin: 0;
+	padding: 0;
+	height: 100%;
+	overflow: hidden;
+}
+
+#canvas {
+	margin: 0;
+	padding: 0;
+	position: absolute;;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+}
+
+#toolbox {
+	width: 300px;
+	position: absolute;
+	right: 0;
+	top: 0;
+	font-size: 12px;
+	padding: 5px;
+
+	.title {
+		border-bottom: 1px solid #eee;
+
+		width: 100%;
+		font-weight: bold;
+		font-size: 14px;
+		margin-bottom: 5px;
+		margin-top: 10px;
+
+		&:first-of-type {
+			margin-top: 0;
+		}
+	}
+	
+	.log-box {
+		ul.toolbox-log-list {
+			padding: 0;
+			margin: 0;
+			.toolbox-log-list-item {
+				position: relative;
+				display: block;
+				padding-top: 3px;
+				padding-bottom: 3px;
+				margin: 0;
+				background-color: #fff;
+			}
+		}
+
+		$text-default: #000000;
+		$text-success: #3c763d;
+		$text-primary: #337ab7;
+		$text-info: #31708f;
+		$text-warning: #8a6d3b;
+		$text-danger: #a94442;
+
+		$text-log: $text-default;
+		//$text-success: $text-success;
+		$text-error: $text-danger;
+
+		.toolbox-log-list-item, .item-log {
+			color: $text-log	
+		}
+		.item-success {
+			color: $text-success !important;
+		}
+		.item-error {
+			color: $text-error !important;
+		}   
+
+	}
+
+}
+
+.btn-xs {
+	padding: 0.2rem 0.2rem;
+	font-size: 0.7rem;
+	line-height: 1.0;
+	border-radius: 0.2rem
+}

@@ -2,47 +2,64 @@ import {AnimateElement} from "../animate-element";
 import PF from "../../../../node_modules/pathfinding";
 import {Vector} from "../../lib/vector";
 import {GoTo} from "../../actions/goto-action";
+import {ReactiveVar} from "meteor/reactive-var";
 
 export class Player extends AnimateElement {
 	/**
 	 *
 	 * @param id
+	 * @param name
 	 * @param position
 	 * @param {World} world
 	 * @param shape
 	 * @param playerEventCollection
 	 */
-	constructor(id, position, world, playerEventCollection, shape)
+	constructor(id, name, position, world, playerEventCollection, shape)
 	{
 		super(id, position, world, shape);
-		console.log('Player constructed');
 		this.playerEventCollection = playerEventCollection;
 		this._queue = [];
 		this._timers = [];
+		this._name = name;
+		this._energy = new ReactiveVar(100);
+	}
+	
+	get energy()
+	{
+		return this._energy.get();
+	}
 
+	set energy(level)
+	{
+		this._energy.set(level);
+	}
+
+	get name()
+	{
+		return this._name;
+	}
+
+	set name(name)
+	{
+		this._name = name;
 	}
 
 	onClick(event)
 	{
+		console.log('clock');
 		let chunkSize = this.world.settings.chunkSize;
 		let cellSize  = this.world.settings.cellSize;
-		let clickX = event.data.global.x + (this.world.camera.world.pivot.x - 512);
-		let clickY = event.data.global.y + (this.world.camera.world.pivot.y - 512);
+		let chunks = this.world.settings.chunks;
+		let clickX = event.data.global.x + (this.world.camera.scene.pivot.x - 512);
+		let clickY = event.data.global.y + (this.world.camera.scene.pivot.y - 512);
 
-		this.playerEventCollection.insert({a: 'c', t: this.id, x: clickX, y: clickY});
-		let originX = Math.floor((chunkSize / cellSize) / (chunkSize / this.shape.x));
-		let originY = Math.floor((chunkSize / cellSize) / (chunkSize / this.shape.y));
-		let moveX   = Math.floor((chunkSize / cellSize) / (chunkSize / clickX));
-		let moveY   = Math.floor((chunkSize / cellSize) / (chunkSize / clickY));
+		this.playerEventCollection.insert({a: 'c', t: this.id, x: clickX, y: clickY, createdAt: new Date()});
+		let originX = Math.floor(((chunkSize * chunks) / cellSize) / ((chunkSize * chunks) / this.shape.x));
+		let originY = Math.floor(((chunkSize * chunks) / cellSize) / ((chunkSize * chunks) / this.shape.y));
+		let moveX   = Math.floor(((chunkSize * chunks) / cellSize) / ((chunkSize * chunks) / clickX));
+		let moveY   = Math.floor(((chunkSize * chunks) / cellSize) / ((chunkSize * chunks) / clickY));
 
-		let tiles      = chunkSize / cellSize;
-		let x          = Math.floor(clickX / cellSize);
-		let y          = Math.floor(clickY / cellSize);
-		let chunkIndex = (y * tiles) + x;
-
-		let chunk = this.world.chunks[0];
-
-		let pathFinder = chunk.pathFinder.clone();
+		let pathFinder = this.world.pathFinder.clone();
 		let finder     = new PF.AStarFinder({
 			allowDiagonal: true
 		});

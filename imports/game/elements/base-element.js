@@ -30,6 +30,10 @@ export class BaseElement {
 			visible: false
 		};
 	}
+	
+	tick()
+	{
+	}
 
 	/**
 	 * @returns {string}

@@ -22,10 +22,14 @@ kadira:blaze-layout
 arillo:flow-router-helpers
 zimme:active-route
 kadira:flow-router
-sorenpeterson:createjs
 reactive-dict
 session
 insecure
-meteorhacks:kadira
-kadira:debug
+#meteorhacks:kadira
+#kadira:debug
 underscore
+promise
+fourseven:scss
+chuikoff:bootstrap-4
+momentjs:moment
+practicalmeteor:faker

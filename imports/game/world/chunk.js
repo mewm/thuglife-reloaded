@@ -1,9 +1,8 @@
 export class Chunk {
-	constructor(position, tiles, pathFinder, shape)
+	constructor(position, tiles, shape)
 	{
 		this._position   = position;
 		this._tiles      = tiles;
-		this._pathFinder = pathFinder;
 		this._shape      = shape;
 	}
 
@@ -22,10 +21,6 @@ export class Chunk {
 		return this._tiles;
 	}
 
-	get pathFinder()
-	{
-		return this._pathFinder;
-	}
 
 	get position()
 	{

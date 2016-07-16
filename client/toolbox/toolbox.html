@@ -1,0 +1,59 @@
+<template name="toolbox">
+	<div class="toolbox">
+		<div class="title">Your player</div>
+		<div class="player-box">
+			<strong>{{ player.name }} (ID: {{ player.id}})</strong><br>
+			Energy: <strong>{{ playerEnergy }}</strong>
+		</div>
+
+		<div class="title">Thug world</div>
+		<div class="world-box">
+			Chunks: <strong>{{ chunkCount }}</strong><br>
+			Players: <strong>{{ playerCount }}</strong><br>
+		</div>
+
+		<div class="title">
+			<div class="row">
+				<div class="col-sm-6">
+					Local log
+				</div>
+				<div class="col-sm-6 text-right">
+					<button class="btn btn-warning btn-xs" name="clear-local-log">Clear</button>
+				</div>
+			</div>
+		</div>
+		<div class="log-box">
+			<ul class="toolbox-log-list">
+				{{#each localLog }}
+					<li class="toolbox-log-list-item item-{{ severity }}">
+						{{ formatDate createdAt }} - {{{ message }}}
+					</li>
+				{{else}}
+					<li class="toolbox-log-list-item">No logs</li>
+				{{/each}}
+			</ul>
+		</div>
+		<div class="title">
+			<div class="row">
+				<div class="col-sm-6">
+					Server log
+				</div>
+				<div class="col-sm-6 text-right">
+					<button class="btn btn-warning btn-xs" name="clear-server-log">Clear</button>
+				</div>
+			</div>
+		</div>
+		<div class="log-box">
+			<ul class="toolbox-log-list">
+				{{#each thugLog }}
+					<li class="toolbox-log-list-item item-{{ severity }}">
+						{{ formatDate createdAt }} - {{{ message }}}
+					</li>
+				{{else}}
+					<li class="toolbox-log-list-item">No logs</li>
+				{{/each}}
+			</ul>
+		</div>
+	</div>
+</template>
+

@@ -53,13 +53,13 @@ export class MapGenerator {
 
 				chunk.tiles.push({x: _x, y: _y, noise: bedrockValue, tree: tree});
 
-				tweak += Math.random() > 0.5 ? 32 : -32;
+				//tweak += Math.random() > 0.5 ? 32 : -32;
 			}
 		}
 
 		this.world.push(chunk);
 
-		this.tweak += Math.random() > 0.5 ? 256 : -256;
+		//this.tweak += Math.random() > 0.5 ? 256 : -256;
 	}
 
 }

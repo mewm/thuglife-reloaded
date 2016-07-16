@@ -9,13 +9,13 @@ export class ElementFactory {
 		};
 
 		this.noiseColors = [
-			{ name: "Deep Water", color: 0x0000cc },
-			{ name: "Water", color: 0x0066ff },
-			{ name: "Sand", color: 0xffff99 },
-			{ name: "Grass", color: 0x009933 },
-			{ name: "Woodland", color: 0x006600 },
-			{ name: "Mountain", color: 0xa9a9a9 },
-			{ name: "Snow", color: 0xffffff }
+			{name: "Deep Water", color: 0x0000cc},
+			{name: "Water", color: 0x0066ff},
+			{name: "Sand", color: 0xffff99},
+			{name: "Grass", color: 0x009933},
+			{name: "Woodland", color: 0x006600},
+			{name: "Mountain", color: 0xa9a9a9},
+			{name: "Snow", color: 0xffffff}
 		];
 
 	}
@@ -50,15 +50,19 @@ export class ElementFactory {
 
 		let image                  = PIXI.Texture.fromImage("bunny.png");
 		let playerSprite           = new PIXI.Sprite(image);
-		playerSprite.x = Math.round(image.width/2);
-		playerSprite.y = -Math.round(image.height/2);
+		playerSprite.x             = Math.round(image.width / 2);
+		playerSprite.y             = -Math.round(image.height / 2);
 		playerContainer.position.x = player.position.x;
 		playerContainer.position.y = player.position.y;
 		playerContainer.addChild(playerSprite);
 
-		let text = new PIXI.Text(player.id, {font: '10px Impact', fill: 0xffffff, stroke: 0x000000, strokeThickness: 3});
-		text.x = playerSprite.x + ((image.width/2)-(text.width/2));
-		text.y = playerSprite.y + image.height;
+		let textOptions = {
+			font: '11px Impact', fill: 0xffffff, stroke: 0x000000, strokeThickness: 1
+		};
+		
+		let text = new PIXI.Text((player.name ? player.name : player._id), textOptions);
+		text.x   = playerSprite.x + ((image.width / 2) - (text.width / 2));
+		text.y   = playerSprite.y + image.height;
 		playerContainer.addChild(text);
 
 		return playerContainer;
@@ -91,7 +95,12 @@ export class ElementFactory {
 
 			for (let index = 0; index < chunk.tiles.length; index++) {
 				let tile = chunk.tiles[index];
-				let text = new PIXI.Text(index, {font: '10px Arial', fill: 0xffffff, stroke: 0x000000, strokeThickness: 1});
+				let text = new PIXI.Text(index, {
+					font: '10px Arial',
+					fill: 0xffffff,
+					stroke: 0x000000,
+					strokeThickness: 1
+				});
 				text.x   = tile.x + 10;
 				text.y   = tile.y + 10;
 
@@ -113,7 +122,7 @@ export class ElementFactory {
 				tileContainer.addChild(line1);
 				tileContainer.addChild(line2);
 			}
-			
+
 			debugContainer.addChild(tileContainer);
 		});
 
@@ -173,7 +182,8 @@ export class ElementFactory {
 		return this.noiseColors[type].color;
 	}
 
-	getCellTypeFromNoiseValue(n) {
+	getCellTypeFromNoiseValue(n)
+	{
 
 		let type;
 

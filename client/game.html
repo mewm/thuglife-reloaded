@@ -1,0 +1,19 @@
+<head>
+	<title>TF-Reloaded</title>
+</head>
+
+<template name="game-layout">
+	{{> Template.dynamic template=main}}
+</template>
+
+<template name="game">
+	<div id="canvas" class="container-fluid">
+	</div>
+	<div id="toolbox">
+		{{#if world }}
+			{{> toolbox world }}
+		{{else}}
+			Loading world...
+		{{/if}}
+	</div>
+</template>
