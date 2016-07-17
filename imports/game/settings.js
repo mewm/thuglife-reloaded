@@ -8,8 +8,9 @@ export class GameSettings {
 		this.cellSize  = 32;
 		this.chunks    = 3;  
 		
-		this.canvasW = 1024;
-		this.canvasH = 1024;
+		// set after initialisation 
+		this.canvasW = 0;
+		this.canvasH = 0;
 		
 		this.energyDecay = 0.0001;
 

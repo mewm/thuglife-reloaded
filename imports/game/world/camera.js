@@ -2,16 +2,20 @@ import {ElementFactory} from "./elementFactory";
 import PIXI from "../../../node_modules/pixi.js";
 
 export class Camera {
-	constructor(settings, ticker)
+	constructor(canvas, settings, ticker)
 	{
-		this.elementFactory = new ElementFactory(this.settings);
+		this.canvas         = canvas;
 		this.settings       = settings;
-		this.renderer       = PIXI.autoDetectRenderer(settings.canvasW, settings.canvasH, {backgroundColor: 0x34495e});
+		this.ticker         = ticker;
+		this.elementFactory = new ElementFactory(this.settings);
 
 		// Containers
 		this.gui   = this.elementFactory.createEmptyContainer();
 		this.scene = this.elementFactory.createEmptyContainer();
 		this.prepareWorldContainerWithLayers();
+		this.onResize();
+
+		this.renderer = PIXI.autoDetectRenderer(settings.canvasW, settings.canvasH, {backgroundColor: 0x34495e});
 
 		// Main view
 		this.cameraContainer             = new PIXI.Container();
@@ -21,22 +25,84 @@ export class Camera {
 		this.cameraContainer.addChild(this.scene);
 		this.cameraContainer.addChild(this.gui);
 
-		
-		
-		this.cameraContainer.x = 512;
-		this.cameraContainer.y = 512;
-		this.follower          = null;
+		this.following = null;
 
-		this.fps    = 0;
-		this.ticker = ticker;
+		this.fps = 0;
+
+		let textOptions = {
+			font: '16px Arial', fill: 0xffffff, stroke: 0x000000, strokeThickness: 2
+		};
+		this.cameraInfo = new PIXI.Text(this.fps, textOptions);
 
 	}
 
-	addPlayerAndFollow(shape)
+	onResize()
 	{
-		this.scene.addChild(shape);
-		this.follower = shape;
-		this.update();
+		this.settings.canvasW = this.canvas.width() - 300;
+		this.settings.canvasH = this.canvas.height();
+
+		// Adjust X Y to center on canvas. Adjust pivot to have center of camera on X Y position on world  
+		this.scene.x = this.settings.canvasW / 2; // canvasW/2
+		this.scene.y = this.settings.canvasH / 2; // canvasH/2
+	}
+
+	moveTo(x, y)
+	{
+		this.scene.pivot.x = x;
+		this.scene.pivot.y = y;
+	}
+
+	moveLeft(amount)
+	{
+
+		this.scene.pivot.x -= amount;
+	}
+
+	moveRight(amount)
+	{
+		this.scene.pivot.x += amount;
+	}
+
+	moveUp(amount)
+	{
+		this.scene.pivot.y -= amount;
+	}
+
+	moveDown(amount)
+	{
+		this.scene.pivot.y += amount;
+	}
+
+	follow(player)
+	{
+		cn.local('Camera following: <strong>' + player.name + '</strong>');
+		this.moveToPlayer(player);
+		this.following = player;
+		return this;
+	}
+
+	unfollow()
+	{
+		if (this.following) {
+			cn.local('Camera unfollowing: <strong>' + this.following.name + '</strong>');
+			this.following = null;
+		}
+		return this;
+	}
+
+	addPlayerAndFollow(player)
+	{
+		this.scene.addChild(player.shape);
+		this.moveToPlayer(player)
+			.follow(player)
+			.update();
+		return this;
+	}
+
+	moveToPlayer(player)
+	{
+		this.moveTo(player.shape.x, player.shape.y);
+		return this;
 	}
 
 	addToLayer(container, layer)
@@ -47,15 +113,16 @@ export class Camera {
 	update()
 	{
 		this.tick();
-		this.fps.text = this.ticker.FPS;
+		this.fps.text        = this.ticker.FPS;
+		this.cameraInfo.text = 'Camera/scene pos: ' + this.scene.x + ',' + this.scene.y + ' pivot: ' + this.scene.pivot.x + ',' + this.scene.pivot.y;
 		this.renderer.render(this.cameraContainer);
 	}
 
 	tick()
 	{
-		if (this.follower !== null) {
-			this.scene.pivot.x = this.follower.position.x;
-			this.scene.pivot.y = this.follower.position.y;
+		if (this.following !== null) {
+			this.scene.pivot.x = this.following.shape.x;
+			this.scene.pivot.y = this.following.shape.y;
 		}
 	}
 
@@ -64,11 +131,18 @@ export class Camera {
 		let textOptions = {
 			font: '16px Arial', fill: 0xffffff, stroke: 0x000000, strokeThickness: 2
 		};
-		this.fps        = new PIXI.Text('Loading', textOptions);
-		this.fps.x      = 10 - 512;
-		this.fps.y      = 10 - 512;
+		this.fps        = new PIXI.Text('Camera stats loading...', textOptions);
+		this.fps.x      = 10;
+		this.fps.y      = 10;
 		this.gui.addChild(this.fps);
+	}
 
+	addCameraStats()
+	{
+
+		this.cameraInfo.x = 400;
+		this.cameraInfo.y = 10;
+		this.gui.addChild(this.cameraInfo);
 	}
 
 	prepareWorldContainerWithLayers()

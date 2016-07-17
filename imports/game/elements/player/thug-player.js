@@ -15,17 +15,16 @@ export class ThugPlayer extends AnimateElement {
 	constructor(id, name, position, world, shape)
 	{
 		super(id, position, world, shape);
-		this._name = name;
+		this._name   = name;
 		this._timers = [];
 		this._queue  = [];
 	}
-	
+
 	get name()
 	{
-	return this._name;
+		return this._name;
 	}
-	
-	
+
 	set name(name)
 	{
 		this._name = name;
@@ -33,17 +32,36 @@ export class ThugPlayer extends AnimateElement {
 
 	onClick(event)
 	{
-		cn.local('Click received. Moving <b>' + this.name + '</b> to ' + event.x +',' + event.y);
-		
-		let chunkSize = this.world.settings.chunkSize;
-		let cellSize  = this.world.settings.cellSize;
-		let chunks    = this.world.settings.chunks;
-		let clickX    = event.x;
-		let clickY    = event.y;
-		let originX   = Math.floor(((chunkSize * chunks) / cellSize) / ((chunkSize * chunks) / this.shape.x));
-		let originY   = Math.floor(((chunkSize * chunks) / cellSize) / ((chunkSize * chunks) / this.shape.y));
-		let moveX     = Math.floor(((chunkSize * chunks) / cellSize) / ((chunkSize * chunks) / clickX));
-		let moveY     = Math.floor(((chunkSize * chunks) / cellSize) / ((chunkSize * chunks) / clickY));
+		// Absolute world coordinates 
+
+		let clickX = event.x;
+		let clickY = event.y;
+
+		let path = this.getPathFinderFromClicksAndClearTimers(clickX, clickY, false, event);
+		let i    = 0;
+		path.map((v) =>
+		{
+			let vector  = new Vector(v[0], v[1]);
+			let timeout = setTimeout(() =>
+			{
+				super.queue(new GoTo(vector));
+			}, i);
+
+			this._timers.push(timeout);
+
+			i += 100;
+		});
+	}
+
+	getPathFinderFromClicksAndClearTimers(clickX, clickY, isPlaying, event)
+	{
+
+		let cellSize = this.world.settings.cellSize;
+
+		let originX = Math.floor((this.shape.x - this.world.worldX) / cellSize);
+		let originY = Math.floor((this.shape.y - this.world.worldY) / cellSize);
+		let moveX   = Math.floor((clickX - this.world.worldX) / cellSize);
+		let moveY   = Math.floor((clickY - this.world.worldY) / cellSize);
 
 		let pathFinder = this.world.pathFinder.clone();
 		let finder     = new PF.AStarFinder({
@@ -62,18 +80,17 @@ export class ThugPlayer extends AnimateElement {
 			clearTimeout(timer);
 		});
 
-		let i = 0;
-		path.map((v) =>
-		{
-			let vector  = new Vector(v[0], v[1]);
-			let timeout = setTimeout(() =>
-			{
-				super.queue(new GoTo(vector));
-			}, i);
-
-			this._timers.push(timeout);
-
-			i += 100;
-		});
+		if (isPlaying) {
+			cn.local([
+				"Currently at grid: " + this.position.toString(),
+				"Origin: " + originX + "," + originY,
+				"I'm going to relative click xy: " + event.data.global.x + "," + event.data.global.y,
+				"Absolute: " + moveX + "," + moveY,
+				"Current shape xy: " + this.shape.x + "," + this.shape.y,
+			].join('<br>'));
+		} else {
+			cn.local('Click received. Moving <b>' + this.name + '</b> to ' + event.x + ',' + event.y);
+		}
+		return path;
 	}
 } 

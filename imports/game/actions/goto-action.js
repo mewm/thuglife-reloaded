@@ -1,8 +1,6 @@
 import {BaseAction} from "./base-action";
-import PF from "../../../node_modules/pathfinding";
 import {MapGenerator} from "../world/generator";
 import {Chunk} from "../world/chunk";
-import {ElementFactory} from "../world/elementFactory";
 import {Noise} from "../util/noise";
 import {Vector} from "../lib/vector";
 import PIXI from "../../../node_modules/pixi.js";
@@ -11,6 +9,8 @@ export class GoTo extends BaseAction {
 	constructor(destination)
 	{
 		super(destination);
+
+		// This destination is tile coordinates!
 		this.destination = destination;
 
 		this.noiseColors = [
@@ -28,24 +28,22 @@ export class GoTo extends BaseAction {
 	{
 		animateElement.moveTo(this.destination);
 		if (animateElement.position == this.destination) {
-			if(animateElement.world.player.id == animateElement.id) {
-				let dumpChunks = [];
-				let chunks = animateElement.getNewChunkPositionsFromPlayerPosition();
+
+			if (animateElement.world.player.id == animateElement.id) {
+				let dumpChunks     = [];
+				let chunks         = animateElement.getNewChunkPositionsFromPlayerPosition();
 				let existingChunks = animateElement.world.chunks;
-				let maxX = 0;
-				let minX = 0;
-				let maxY = 0;
-				let minY = 0;
-				existingChunks.map((existingChunk) => 
+				let minX           = 0;
+				let minY           = 0;
+				existingChunks.map((existingChunk) =>
 				{
-					maxX = existingChunk.position.x > maxX ? existingChunk.position.x : maxX;
-					maxY = existingChunk.position.y > maxY ? existingChunk.position.y : maxY;
-					minX = existingChunk.position.x < minX ? existingChunk.position.x : minX;
-					minY = existingChunk.position.y < minY ? existingChunk.position.y : minY;
-					chunks.map((chunk) => 
+					minX = existingChunks.x < minX ? existingChunks.x : minX;
+					minY = existingChunks.y < minY ? existingChunks.y : minY;
+
+					chunks.map((chunk) =>
 					{
-						if(chunk.equals(existingChunk.position)) {
-							dumpChunks.push(chunks.splice(chunks.indexOf(chunk), 1)[0]);
+						if (chunk.equals(existingChunk.position)) {
+							chunks.splice(chunks.indexOf(chunk), 1);
 						}
 					});
 				});
@@ -53,35 +51,30 @@ export class GoTo extends BaseAction {
 				animateElement.world.worldX = minX;
 				animateElement.world.worldY = minY;
 
-				let newWorldWidth = -minX+maxX;
-				let newWorldHeight = -minY+maxY;
-
-				chunks.map((chunk) => 
+				chunks.map((chunk) =>
 				{
 					let generatedChunk = this.createChunk(chunk.x, chunk.y, animateElement.world);
-					let newChunk   = new Chunk(new Vector(chunk.x, chunk.y), generatedChunk.tiles);
-					newChunk.shape = this.createSingleChunkContainer(newChunk, animateElement.world);
+					let newChunk       = new Chunk(new Vector(chunk.x, chunk.y), generatedChunk.tiles);
+					newChunk.shape     = this.createSingleChunkContainer(newChunk, animateElement.world);
 					animateElement.world.chunks.push(newChunk);
 
 					animateElement.world.camera.worldLayers.chunks.cacheAsBitmap = null;
 					animateElement.world.camera.worldLayers.chunks.addChild(newChunk.shape);
 					animateElement.world.camera.worldLayers.chunks.cacheAsBitmap = true;
+
+					//console.log("Created Chunk");
 				});
 
-				console.log(dumpChunks);
+				/*existingChunks.map((dumpChunk) => 
+				 {
+				 let distance = animateElement.position.distanceTo(new Vector(dumpChunk.position.x, dumpChunk.position.y));
 
-				/*dumpChunks.map((dumpChunk) => 
-				{
-					animateElement.world.camera.worldLayers.chunks.removeChild(dumpChunk.shape);
-					animateElement.world.chunks.splice(animateElement.world.chunks.indexOf(dumpChunk));
-					console.log("Dumped chunk.");
-				});*/
-
-				if(chunks.length > 0) 
-				{
-					//animateElement.world.pathFinder = new PF.Grid(newWorldWidth, newWorldHeight);
-					console.log("Generated new PathFinder Grid: " + newWorldWidth + ", " + newWorldHeight);
-				}
+				 if(distance > 8000) {
+				 animateElement.world.chunks.splice(animateElement.world.chunks.indexOf(dumpChunk), 1);
+				 animateElement.world.camera.worldLayers.chunks.removeChild(dumpChunk.shape);
+				 console.log("Dumped");
+				 }
+				 });*/
 			}
 
 			callback();
@@ -90,9 +83,7 @@ export class GoTo extends BaseAction {
 
 	createChunk(x, y, world)
 	{
-		let seed = 0.86810414;
-
-		Noise.seed(seed);
+		Noise.seed(0.532811);
 
 		let chunk = {x: x, y: y, tiles: []};
 
@@ -102,8 +93,8 @@ export class GoTo extends BaseAction {
 			for (let _x = x; _x < x + world.settings.chunkSize; _x += world.settings.cellSize) {
 				let bedrockValue = +Noise.simplex2(_x / tweak, _y / tweak).toFixed(2);
 
-				let treeValue = +Noise.simplex2(_x / tweak/2, _y / tweak/2).toFixed(2);
-				let tree  = MapGenerator.isForrestable(bedrockValue, treeValue);
+				let treeValue = +Noise.simplex2(_x / tweak / 2, _y / tweak / 2).toFixed(2);
+				let tree      = MapGenerator.isForrestable(bedrockValue, treeValue);
 
 				chunk.tiles.push({x: _x, y: _y, noise: bedrockValue, tree: tree});
 
@@ -113,7 +104,7 @@ export class GoTo extends BaseAction {
 
 		//tweak += Math.random() > 0.5 ? 256 : -256;
 
-		return chunk;	
+		return chunk;
 	}
 
 	createSingleChunkContainer(chunk, world)

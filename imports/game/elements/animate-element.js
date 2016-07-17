@@ -25,10 +25,8 @@ export class AnimateElement extends BaseElement {
 
 	tick(event)
 	{
-		super.tick();
 		if (this.isThugging === null) {
 			let action = this.next();
-			//console.log('shoud do', action);
 			if (action !== undefined) {
 				this.thug(action);
 			}
@@ -44,6 +42,10 @@ export class AnimateElement extends BaseElement {
 			// 			console.log(this.queue);
 			this.actionsPerformed.push(this.isThugging);
 			this.isThugging = null;
+
+			if(this._queue.length == 0) {
+				
+			}
 		});
 	}
 
@@ -52,7 +54,8 @@ export class AnimateElement extends BaseElement {
 		let x = vector.x * this.world.settings.cellSize;
 		let y = vector.y * this.world.settings.cellSize;
 
-		this.position = vector;
+		this.position.x = x;
+		this.position.y = y;
 		this.shape.x  = x;
 		this.shape.y  = y;
 	}
@@ -73,11 +76,11 @@ export class AnimateElement extends BaseElement {
 		let chunkSize = this.world.settings.chunkSize;
 		let chunkRadius = this.world.settings.chunks;
 		let chunkLoadRadius = 3;
-		let currentChunkPosition = this.getChunkPosition(this.position.x*this.world.settings.cellSize, this.position.y*this.world.settings.cellSize);
+		let currentChunkPosition = this.getChunkPosition(this.position.x, this.position.y);
 
 		let newChunks = []
-		let searchX = (this.position.x*this.world.settings.cellSize) - (worldSize/chunkLoadRadius);
-		let searchY = (this.position.y*this.world.settings.cellSize) - (worldSize/chunkLoadRadius);
+		let searchX = (this.position.x) - (worldSize/chunkLoadRadius);
+		let searchY = (this.position.y) - (worldSize/chunkLoadRadius);
 
 		for(let y = searchY; y < searchY+(chunkLoadRadius*chunkSize); y += chunkSize) {
 			for(let x = searchX; x < searchX+(chunkLoadRadius*chunkSize); x += chunkSize) {

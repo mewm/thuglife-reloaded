@@ -10,6 +10,7 @@ export class BaseElement {
 	constructor(id, position, world, shape)
 	{
 		this._id        = id;
+		// This positions is GRID coordinates
 		this._position  = position;
 		this._world     = world;
 		this._shape     = shape;

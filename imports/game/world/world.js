@@ -3,18 +3,18 @@ import {ThugPlayer} from "../elements/player/thug-player";
 import {Vector} from "../lib/vector";
 import {Chunk} from "./chunk";
 import {ElementFactory} from "./elementFactory";
-import {Camera} from "./camera";
 import PF from "../../../node_modules/pathfinding";
 import PIXI from "../../../node_modules/pixi.js";
-
+import {Session} from "meteor/session";
 PIXI.utils._saidHello = true;
 
 export class World {
 	/**
 	 * @param canvas
 	 * @param {GameSettings} settings
+	 * @param camera
 	 */
-	constructor(canvas, settings)
+	constructor(canvas, settings, camera)
 	{
 		this.canvas      = canvas;
 		this.chunks      = [];
@@ -28,13 +28,15 @@ export class World {
 		
 		this.settings       = settings;
 		this.elementFactory = new ElementFactory(this.settings);
-		this.ticker         = new PIXI.ticker.Ticker();
-		this.camera         = new Camera(this.settings, this.ticker);
+		this.camera = camera;
+		this.ticker = camera.ticker;
+
 	}
 
 	start()
 	{
 		this.camera.addFpsTicker();
+		this.camera.addCameraStats();
 		this.ticker.add(this.tick.bind(this));
 		// 		this.ticker.speed = 0.1;
 		this.ticker.start();
@@ -104,13 +106,12 @@ export class World {
 	{
 		if (this.player === null) {
 			this.player       = new Player(player._id, player.nickname, new Vector(player.x, player.y), this, playerEventCollection);
+			
 			this.player.shape =  this.elementFactory.createPlayerContainer(this.player);
-			this.camera.addPlayerAndFollow(this.player.shape);
+			this.camera.addPlayerAndFollow(this.player);
+			this.camera.cameraContainer.mousedown = this.player.onClick.bind(this.player);
+			this.camera.cameraContainer.tap       = this.player.onClick.bind(this.player);
 		}
-		
-		this.camera.cameraContainer.mousedown = this.player.onClick.bind(this.player);
-		this.camera.cameraContainer.tap       = this.player.onClick.bind(this.player);
-		console.log(this.camera.scene.mousedown);
 	}
 
 	installTrees(chunks)
@@ -129,7 +130,7 @@ export class World {
 				this.objects.push(tree);
 			}
 		});
-		this.camera.worldLayers.trees.cacheAsBitmap = false;
+		this.camera.worldLayers.trees.cacheAsBitmap = true;
 	}
 
 	installChunks(chunks)
@@ -149,7 +150,7 @@ export class World {
 			let chunk   = new Chunk(new Vector(primitiveChunk.x, primitiveChunk.y), primitiveChunk.tiles);
 			chunk.shape = this.elementFactory.createSingleChunkContainer(chunk);
 			this.chunks.push(chunk);
-			this.camera.addToLayer(chunk.shape, 'trees');
+			this.camera.addToLayer(chunk.shape, 'chunks');
 		});
 		this.camera.worldLayers.chunks.cacheAsBitmap = true;
 	}

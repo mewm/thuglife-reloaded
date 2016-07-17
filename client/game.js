@@ -4,8 +4,12 @@ import {GameSettings} from "../imports/game/settings";
 import logger from "../imports/game/lib/logger";
 import "../node_modules/keymaster";
 import "../imports/startup/routes.js";
+import {Camera} from "../imports/game/world/camera";
+import PIXI from "../node_modules/pixi.js";
+import {Session} from "meteor/session";
 
 WorldMap     = new Mongo.Collection("WorldMap");
+Worlds       = new Mongo.Collection("Worlds");
 Players      = new Mongo.Collection("Players");
 PlayerEvents = new Mongo.Collection("PlayerEvents");
 ThugLog      = new Mongo.Collection("ThugLog");
@@ -28,25 +32,23 @@ Template.game.onCreated(function()
 	Session.set('thugName', this.thugName);
 
 	// Collection subscriptions
-	this.subscribe("worldmap");
-	this.subscribe("player_events");
-	this.subscribe("players");
-	this.subscribe("thug_log");
+	this.subscribe("worldData");
 
 });
-
+world = null;
 Template.game.onRendered(function()
 {
-	// Canvas and settings
-	const $canvas         = $('#canvas');
-	this.settings.canvasW = $canvas.width() - 300;
-	this.settings.canvasH = $canvas.height();
-
+	// Camera and canvas
+	const $canvas = $('#canvas');
+	let ticker    = new PIXI.ticker.Ticker();
+	let camera    = new Camera($canvas, this.settings, ticker);
 	// Create world
-	this.world             = new World($canvas, this.settings);
+	this.world    = world = new World($canvas, this.settings, camera);
 	this.world.mapRendered = new ReactiveVar(false);
-	subscribeToDebugKeys(this);
 	$canvas.append(this.world.camera.renderer.view);
+
+	// Resize
+	$(window).resize(camera.onResize.bind(camera));
 
 	// When map is loaded into the client, render world
 	this.autorun(() =>
@@ -110,45 +112,17 @@ let findOrInsertPlayer = function(name)
 		if (player) {
 			return player;
 		} else {
-			let playerId = Players.insert({nickname: name, x: 512, y: 512});
+			let playerId = Players.insert({
+				nickname: name, x: 512, y: 512,
+				world_id: Worlds.findOne()._id
+			});
 			let player   = Players.findOne(playerId);
 			return player;
 
 		}
 	}
 
-	let playerId = Players.insert({x: 512, y: 512});
-	return Players.findOne(playerId);
+	// 	let playerId = Players.insert({x: 512, y: 512});
+	// 	return Players.findOne(playerId);
 };
 
-let subscribeToDebugKeys = function(template)
-{
-	key('0', () =>
-	{
-		let layer = template.settings.debug.tile;
-		layer.set(!layer.get());
-	});
-
-	key('1', () =>
-	{
-		let layer = template.settings.debug.chunk;
-		layer.set(!layer.get());
-	});
-	key('right', () =>
-	{
-		template.game.camera.world.x = template.game.camera.world.x - 10;
-	});
-	key('left', () =>
-	{
-		template.game.camera.world.x = game.world.camera.world.x + 10;
-	});
-	key('up', () =>
-	{
-		template.game.camera.world.y = template.game.camera.world.y + 10;
-	});
-
-	key('down', () =>
-	{
-		template.world.game.world.y = template.world.game.world.y + 10;
-	});
-};
