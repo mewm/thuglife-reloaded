@@ -27,8 +27,8 @@ export class GoTo extends BaseAction {
 	perform(animateElement, callback)
 	{
 		animateElement.moveTo(this.destination);
-		if (animateElement.position == this.destination) {
-
+		if (animateElement.isAtTileCoordinate(this.destination)) {
+			
 			if (animateElement.world.player.id == animateElement.id) {
 				let dumpChunks     = [];
 				let chunks         = animateElement.getNewChunkPositionsFromPlayerPosition();
@@ -37,8 +37,8 @@ export class GoTo extends BaseAction {
 				let minY           = 0;
 				existingChunks.map((existingChunk) =>
 				{
-					minX = existingChunks.x < minX ? existingChunks.x : minX;
-					minY = existingChunks.y < minY ? existingChunks.y : minY;
+					minX = existingChunk.position.x < minX ? existingChunk.position.x : minX;
+					minY = existingChunk.position.y < minY ? existingChunk.position.y : minY;
 
 					chunks.map((chunk) =>
 					{
@@ -50,7 +50,7 @@ export class GoTo extends BaseAction {
 
 				animateElement.world.worldX = minX;
 				animateElement.world.worldY = minY;
-
+				
 				chunks.map((chunk) =>
 				{
 					let generatedChunk = this.createChunk(chunk.x, chunk.y, animateElement.world);

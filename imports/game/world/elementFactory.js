@@ -52,8 +52,8 @@ export class ElementFactory {
 		let playerSprite           = new PIXI.Sprite(image);
 		playerSprite.x             = Math.round(image.width / 2);
 		playerSprite.y             = -Math.round(image.height / 2);
-		playerContainer.position.x = player.position.x;
-		playerContainer.position.y = player.position.y;
+		playerContainer.position.x = player._position.x;
+		playerContainer.position.y = player._position.y;
 		playerContainer.addChild(playerSprite);
 
 		let textOptions = {

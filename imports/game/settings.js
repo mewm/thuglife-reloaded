@@ -3,7 +3,7 @@ import {ReactiveVar} from "meteor/reactive-var";
 export class GameSettings {
 	constructor()
 	{
-		this.tweak     = 8096;
+		this.tweak     = 1024*16;
 		this.chunkSize = 1024;
 		this.cellSize  = 32;
 		this.chunks    = 3;  

@@ -75,14 +75,14 @@ export class ThugPlayer extends AnimateElement {
 			return item.constructor.name == "GoTo";
 		});
 
-		this._timers.map((timer) =>
-		{
-			clearTimeout(timer);
-		});
-
+// 		this._timers.map((timer) =>
+// 		{
+// 			clearTimeout(timer);
+// 		});
+//
 		if (isPlaying) {
 			cn.local([
-				"Currently at grid: " + this.position.toString(),
+				"Currently at grid: " + this._position.x + ',' + this._position.y,
 				"Origin: " + originX + "," + originY,
 				"I'm going to relative click xy: " + event.data.global.x + "," + event.data.global.y,
 				"Absolute: " + moveX + "," + moveY,

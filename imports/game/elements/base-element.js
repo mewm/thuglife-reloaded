@@ -43,14 +43,6 @@ export class BaseElement {
 	{
 		return this._id;
 	}
-
-	/**
-	 * @param {Vector} vector
-	 */
-	set position(vector)
-	{
-		this._position = vector;
-	}
 	
 	get shape()
 	{
@@ -60,14 +52,6 @@ export class BaseElement {
 	set shape(shape)
 	{
 		this._shape = shape;
-	}
-
-	/**
-	 * @returns {Vector}
-	 */
-	get position()
-	{
-		return this._position;
 	}
 
 	get world()
