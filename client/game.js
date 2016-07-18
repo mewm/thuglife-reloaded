@@ -1,15 +1,12 @@
 import {Template} from "meteor/templating";
-import {World} from "../imports/game/world/world";
-import {GameSettings} from "../imports/game/settings";
+import {Session} from "meteor/session";
 import logger from "../imports/game/lib/logger";
 import "../node_modules/keymaster";
 import "../imports/startup/routes.js";
-import {Camera} from "../imports/game/world/camera";
-import PIXI from "../node_modules/pixi.js";
-import {Session} from "meteor/session";
+import {Game} from "../imports/game/game";
 
 WorldMap     = new Mongo.Collection("WorldMap");
-Worlds       = new Mongo.Collection("Worlds");
+Games        = new Mongo.Collection("Games");
 Players      = new Mongo.Collection("Players");
 PlayerEvents = new Mongo.Collection("PlayerEvents");
 ThugLog      = new Mongo.Collection("ThugLog");
@@ -18,8 +15,7 @@ cn           = logger.bootstrap(LocalLog, ThugLog);
 
 Template.game.onCreated(function()
 {
-	this.settings    = new GameSettings();
-	this.mapRendered = new ReactiveVar(false);
+	this.gameState = new ReactiveVar('NOT_LOADED');
 
 	// Get thug name or generate one
 	this.thugName = Session.get('thugName');
@@ -35,94 +31,73 @@ Template.game.onCreated(function()
 	this.subscribe("worldData");
 
 });
-world = null;
+
 Template.game.onRendered(function()
 {
-	// Camera and canvas
-	const $canvas = $('#canvas');
-	let ticker    = new PIXI.ticker.Ticker();
-	let camera    = new Camera($canvas, this.settings, ticker);
-	// Create world
-	this.world    = world = new World($canvas, this.settings, camera);
-	this.world.mapRendered = new ReactiveVar(false);
-	$canvas.append(this.world.camera.renderer.view);
-
-	// Resize
-	$(window).resize(camera.onResize.bind(camera));
-
-	// When map is loaded into the client, render world
-	this.autorun(() =>
+	this.game = null;
+	Tracker.autorun(() =>
 	{
-		if (this.subscriptionsReady() && !this.mapRendered.get()) {
-			// World loaded
-			this.mapRendered.set(true);
-			cn.local('World data loaded', null, 'success');
+		if (this.subscriptionsReady()) {
+			if (this.gameState.get() == 'NOT_LOADED') {
+				this.gameState.set('LOADING');
+				let gameData = Games.findOne({});
+				this.game    = new Game(gameData._id, gameData.seed, $('#canvas'), {
+					worldMap: WorldMap,
+					players: Players,
+					playerEvents: Players,
+				});
+				this.game.initialize(() =>
+				{
+					console.log('LOADED');
+					this.gameState.set('LOADED');
+					this.game.start();
+				});
+			} else if (this.gameState.get() == 'LOADED') {
+				this.game.hotReload();
+			}
 
-			// Find player
-			let player      = findOrInsertPlayer(this.thugName);
-			let thugPlayers = Players.find({nickname: {$ne: this.thugName}}, {reactive: false}).fetch();
-			cn.local('Loaded player: <b>' + player.nickname + '</b>', player, 'success');
-			cn.local('Loaded thugs: <b>' + thugPlayers.length + '</b>', thugPlayers, 'success');
+			// Assign new players
+			Players.find({nickname: {$ne: this.thugName}}).observe({
+				added: this.game.listenToNewThugPlayers.bind(this.game)
+			});
 
-			// Install world
-			this.world.installWorld(WorldMap.find({}).fetch(), player, thugPlayers, PlayerEvents, Players);
-			this.world.start();
-			this.world.camera.update();
+			// Assign player event listener
+			PlayerEvents.find({a: 'c'}).observe({
+				added: this.game.listenToPlayerClick.bind(this.game)
+			});
 		}
 	});
 
 	// Toggle debug tool rendering
 	this.autorun(() =>
 	{
+		if (this.gameState.get() !== 'LOADED') {
+			return;
+		}
+
+		let settings = this.game.settings;
 		cn.local('Debug tools invoked');
-		for (let debugLayer in this.settings.debug) {
-			if (this.settings.debug.hasOwnProperty(debugLayer) && this.mapRendered.get()) {
-				this.world.camera.debugVisibility(debugLayer, this.settings.debug[debugLayer].get());
+		for (let debugLayer in settings.debug) {
+			if (settings.debug.hasOwnProperty(debugLayer) && this.gameState.get()) {
+				this.game.camera.debugVisibility(debugLayer, settings.debug[debugLayer].get());
 			}
 		}
-		this.world.camera.update();
-	});
-
-	// Assign new players
-	Players.find({nickname: {$ne: this.thugName}}).observe({
-		added: this.world.listenToNewThugPlayers.bind(this.world)
-	});
-
-	// Assign player event listener
-	PlayerEvents.find({a: 'c'}).observe({
-		added: this.world.listenToPlayerClick.bind(this.world)
+		this.game.camera.update();
 	});
 
 });
 
 Template.game.helpers({
-	world: function()
+	gameLoaded: function()
 	{
-		if (Template.instance().mapRendered.get()) {
-			return Template.instance().world;
+		if (Template.instance().gameState.get() === 'LOADED') {
+			return true;
 		}
 		return false;
+	},
+
+	getGame: function()
+	{
+		return Template.instance().game;
 	}
 });
-
-let findOrInsertPlayer = function(name)
-{
-	if (name) {
-		var player = Players.findOne({nickname: name});
-		if (player) {
-			return player;
-		} else {
-			let playerId = Players.insert({
-				nickname: name, x: 512, y: 512,
-				world_id: Worlds.findOne()._id
-			});
-			let player   = Players.findOne(playerId);
-			return player;
-
-		}
-	}
-
-	// 	let playerId = Players.insert({x: 512, y: 512});
-	// 	return Players.findOne(playerId);
-};
-

@@ -10,8 +10,8 @@
 	<div id="canvas" class="container-fluid">
 	</div>
 	<div id="toolbox">
-		{{#if world }}
-			{{> toolbox world }}
+		{{#if gameLoaded }}
+			{{> toolbox getGame }}
 		{{else}}
 			Loading world...
 		{{/if}}

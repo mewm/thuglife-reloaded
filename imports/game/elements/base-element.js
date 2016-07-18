@@ -7,12 +7,13 @@ export class BaseElement {
 	 * @param {World} world
 	 * @param shape
 	 */
-	constructor(id, position, world, shape)
+	constructor(id, position, game, shape)
 	{
 		this._id        = id;
 		// This positions is GRID coordinates
 		this._position  = position;
-		this._world     = world;
+		this._game      = game;
+		this._world     = game.world; //legacy
 		this._shape     = shape;
 		this._maxEnergy = 100;
 		this._energy    = 100;
@@ -24,16 +25,21 @@ export class BaseElement {
 
 		//Features
 		this.canCollideWithOthers = true;
-		this.canBeCollidedWith = false;
-		this.proximityDetector = {
+		this.canBeCollidedWith    = false;
+		this.proximityDetector    = {
 			enabled: true,
 			radius: 200,
 			visible: false
 		};
 	}
-	
+
 	tick()
 	{
+	}
+	
+	get position()
+	{
+		return this._position;
 	}
 
 	/**
@@ -44,11 +50,16 @@ export class BaseElement {
 		return this._id;
 	}
 	
+	get game()
+	{
+		return this._game;
+	}
+
 	get shape()
 	{
 		return this._shape;
 	}
-	
+
 	set shape(shape)
 	{
 		this._shape = shape;
@@ -59,30 +70,35 @@ export class BaseElement {
 		return this._world;
 	}
 
-	set maxEnergy(maxEnergy) {
+	set maxEnergy(maxEnergy)
+	{
 		this._maxEnergy = maxEnergy;
 	}
 
-	get maxEnergy() {
+	get maxEnergy()
+	{
 		return this._maxEnergy;
 	}
 
-	set energy(energy) {
+	set energy(energy)
+	{
 		this._energy = energy;
 	}
 
-	get energy() {
+	get energy()
+	{
 		return this._energy;
 	}
 
-	set isAlive(isAlive) {
+	set isAlive(isAlive)
+	{
 		this._isAlive = isAlive;
 	}
 
-	get isAlive() {
+	get isAlive()
+	{
 		return this._isAlive;
 	}
-
 
 	drainEnergy()
 	{
@@ -114,19 +130,19 @@ export class BaseElement {
 
 	isCollidingWith(element)
 	{
-		var selfPos = {
-			left: this.position.x - (this.shape.width/2),
-			top: this.position.y - (this.shape.height/2),
-			right: this.position.x + (this.shape.width/2),
-			bottom: this.position.y + (this.shape.height/2)
+		var selfPos    = {
+			left: this.position.x - (this.shape.width / 2),
+			top: this.position.y - (this.shape.height / 2),
+			right: this.position.x + (this.shape.width / 2),
+			bottom: this.position.y + (this.shape.height / 2)
 		};
 		var elementPos = {
-			left: element.position.x - (element.shape.width/2),
-			top: element.position.y - (element.shape.height/2),
-			right: element.position.x + (element.shape.width/2),
-			bottom: element.position.y + (element.shape.height/2)
+			left: element.position.x - (element.shape.width / 2),
+			top: element.position.y - (element.shape.height / 2),
+			right: element.position.x + (element.shape.width / 2),
+			bottom: element.position.y + (element.shape.height / 2)
 		};
-		
+
 		return !(elementPos.left > selfPos.right || elementPos.right < selfPos.left || elementPos.top > selfPos.bottom || elementPos.bottom < selfPos.top);
 	}
 
@@ -160,7 +176,7 @@ export class BaseElement {
 
 	getClosestElementOfTypeInRange(type)
 	{
-		var closestElement = null;
+		var closestElement         = null;
 		var closestElementDistance = null;
 
 		// Loop through all elements in range.
@@ -173,28 +189,30 @@ export class BaseElement {
 
 				// If we dont have a closest element or the new measured distance is lower than the last then set this element as new closestElement.
 				if (distance < closestElementDistance || closestElementDistance === null) {
-					closestElement = worldElement;
+					closestElement         = worldElement;
 					closestElementDistance = distance;
 				}
 			}
 		}
-		
-		if(!closestElement) {
+
+		if (!closestElement) {
 			return null;
 		}
 		return closestElement;
 	}
 
-	addEnergy(energy) {
-		if(this.energy + energy <= this.maxEnergy) {
+	addEnergy(energy)
+	{
+		if (this.energy + energy <= this.maxEnergy) {
 			this.energy += energy;
 		} else {
 			this.energy = this.maxEnergy;
 		}
 	}
 
-	removeEnergy(energy) {
-		if(this.energy - energy <= 0) {
+	removeEnergy(energy)
+	{
+		if (this.energy - energy <= 0) {
 			this.kill();
 		} else {
 			this.energy -= energy;
@@ -237,6 +255,6 @@ export class BaseElement {
 	 */
 	getCellPositionFromCellNumber(n)
 	{
-// 		return new Vector(this.world.settings.cellSize / n, this.world.settings.cellSize / n);
+		// 		return new Vector(this.world.settings.cellSize / n, this.world.settings.cellSize / n);
 	}
 }

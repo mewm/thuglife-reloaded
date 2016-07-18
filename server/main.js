@@ -3,7 +3,7 @@ import {MapGenerator} from "../imports/game/world/generator";
 import {GameSettings} from "../imports/game/settings";
 
 WorldMap     = new Mongo.Collection('WorldMap');
-Worlds       = new Mongo.Collection('Worlds');
+Games        = new Mongo.Collection('Games');
 PlayerEvents = new Mongo.Collection('PlayerEvents');
 ThugLog      = new Mongo.Collection('ThugLog');
 Players      = new Mongo.Collection('Players');
@@ -14,7 +14,7 @@ Meteor.publishComposite('worldData', {
 	{
 		// Find top ten highest scoring posts
 
-		return Worlds.find({}, {sort: {createdAt: -1}, limit: 1});
+		return Games.find({}, {sort: {createdAt: -1}, limit: 1});
 	},
 	children: [
 		{
@@ -46,14 +46,14 @@ Meteor.publishComposite('worldData', {
 
 Meteor.startup(function()
 {
-// 	Worlds.remove({});
+// 	Games.remove({});
 // 	WorldMap.remove({});
 // 	Players.remove({});
 	PlayerEvents.remove({});
 	console.log(WorldMap.find().count());
 	let seed = 0.532811;
-	if (Worlds.find().count() === 0) {
-		let newWorld = Worlds.insert({seed});
+	if (Games.find().count() === 0) {
+		let newWorld = Games.insert({seed});
 		const mapGenerator = new MapGenerator(new GameSettings(), seed);
 		const world        = mapGenerator.world;
 		world.map(function(chunk)
@@ -68,7 +68,7 @@ Meteor.startup(function()
 });
 
 // Kadira.connect('w5wdSz9dKFKBs3HMY', 'd29c4d76-de41-44f0-8ace-cb20ed1795dd');
-Worlds.allow({});
+Games.allow({});
 ThugLog.allow({
 	insert: function(userId, doc)
 	{

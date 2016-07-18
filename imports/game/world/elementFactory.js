@@ -1,9 +1,10 @@
 import PIXI from "../../../node_modules/pixi.js";
+import {GameEngine} from "../game-engine";
 
 export class ElementFactory {
-	constructor(settings)
+	constructor(game)
 	{
-		this.settings = settings;
+		this.settings = game.settings;
 		this.textures = {
 			bunny: PIXI.Texture.fromImage("bunny.png"),
 		};
@@ -20,14 +21,11 @@ export class ElementFactory {
 
 	}
 
-	createEmptyContainer()
-	{
-		return new PIXI.Container();
-	}
+
 
 	createSingleChunkContainer(chunk)
 	{
-		let chunkContainer = this.createEmptyContainer();
+		let chunkContainer = GameEngine.createEmptyContainer();
 		for (let index = 0; index < chunk.tiles.length; index++) {
 			let tile = chunk.tiles[index];
 
@@ -46,7 +44,7 @@ export class ElementFactory {
 
 	createPlayerContainer(player)
 	{
-		let playerContainer = this.createEmptyContainer();
+		let playerContainer = GameEngine.createEmptyContainer();
 
 		let image                  = PIXI.Texture.fromImage("bunny.png");
 		let playerSprite           = new PIXI.Sprite(image);
@@ -71,7 +69,7 @@ export class ElementFactory {
 	createTreeContainer(tile)
 	{
 		//var tempTree = new createjs.Shape();
-		let treeContainer        = this.createEmptyContainer();
+		let treeContainer        = GameEngine.createEmptyContainer();
 		treeContainer.position.x = tile.x;
 		treeContainer.position.y = tile.y;
 
@@ -87,11 +85,11 @@ export class ElementFactory {
 	 */
 	createTileDebugContainer(mapCollection)
 	{
-		let debugContainer = new this.createEmptyContainer();
+		let debugContainer = new GameEngine.createEmptyContainer();
 		// Tile Outline
 		mapCollection.map((chunk) =>
 		{
-			let tileContainer = new this.createEmptyContainer();
+			let tileContainer = new GameEngine.createEmptyContainer();
 
 			for (let index = 0; index < chunk.tiles.length; index++) {
 				let tile = chunk.tiles[index];
@@ -135,7 +133,7 @@ export class ElementFactory {
 	 */
 	createChunkDebugContainer(mapCollection)
 	{
-		let debugContainer = new this.createEmptyContainer();
+		let debugContainer = new GameEngine.createEmptyContainer();
 		mapCollection.map((chunk) =>
 		{
 			// Chunk Outline

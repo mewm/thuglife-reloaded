@@ -3,11 +3,7 @@ import {Meteor} from "meteor/meteor";
 
 Template.toolbox.onCreated(function()
 {
-	this.subscribe("player_events");
-	this.subscribe("players");
-	this.subscribe("thug_log");
-	this.subscribe("worldmap");
-	this.subscribe("thug_log");
+	this.subscribe("worldData");
 });
 
 Template.toolbox.onRendered(function()

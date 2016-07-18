@@ -9,18 +9,16 @@ export class Player extends ThugPlayer {
 	 * @param id
 	 * @param name
 	 * @param position
-	 * @param {World} world
-	 * @param shape
-	 * @param playerEventCollection
+	 * @param {Game} game
 	 */
-	constructor(id, name, position, world, playerEventCollection, shape)
+	constructor(id, name, position, game)
 	{
-		super(id, name, position, world, shape);
-		this.playerEventCollection = playerEventCollection;
-		this._queue                = [];
-		this._timers               = [];
-		this._name                 = name;
-		this._energy               = new ReactiveVar(100);
+		super(id, name, position, game);
+		this._queue  = [];
+		this._timers = [];
+		this._name   = name;
+		this._energy = new ReactiveVar(100);
+
 	}
 
 	get energy()
@@ -35,22 +33,25 @@ export class Player extends ThugPlayer {
 
 	onClick(event)
 	{
+		let scene    = this.game.scene;
+		let settings = this.game.settings;
+		let world    = this.game.world;
 		// Calculate absolute coordinates
-		let clickX = event.data.global.x + (this.world.camera.scene.pivot.x - this.world.settings.canvasW / 2);
-		let clickY = event.data.global.y + (this.world.camera.scene.pivot.y - this.world.settings.canvasH / 2);
-		let path   = super.getPathFinderFromClicksAndClearTimers(clickX, clickY, true, event);
-		this.playerEventCollection.insert({a: 'c', t: this.id, x: clickX, y: clickY, createdAt: new Date()});
+		let clickX   = event.data.global.x + (scene.pivot.x - settings.canvasW / 2);
+		let clickY   = event.data.global.y + (scene.pivot.y - settings.canvasH / 2);
+		let path     = super.getPathFinderFromClicksAndClearTimers(clickX, clickY, true, event);
+		PlayerEvents.insert({a: 'c', t: this.id, x: clickX, y: clickY, createdAt: new Date()});
 		let i = 0;
 		path.map((v) =>
 		{
 			let vector = new Vector(v[0], v[1]);
-			vector.fixForPathfinder(this.world.worldX, this.world.worldY);
-// 			let timeout = setTimeout(() =>
-// 			{
-				super.queue(new GoTo(vector));
-// 			}, i);
+			vector.fixForPathfinder(world.position.x, world.position.y);
+			// 			let timeout = setTimeout(() =>
+			// 			{
+			super.queue(new GoTo(vector));
+			// 			}, i);
 
-// 			this._timers.push(timeout);
+			// 			this._timers.push(timeout);
 
 			i += 10;
 		});

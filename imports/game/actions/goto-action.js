@@ -28,11 +28,11 @@ export class GoTo extends BaseAction {
 	{
 		animateElement.moveTo(this.destination);
 		if (animateElement.isAtTileCoordinate(this.destination)) {
-			
-			if (animateElement.world.player.id == animateElement.id) {
+
+			if (animateElement.game.player.id == animateElement.id) {
 				let dumpChunks     = [];
 				let chunks         = animateElement.getNewChunkPositionsFromPlayerPosition();
-				let existingChunks = animateElement.world.chunks;
+				let existingChunks = animateElement.game.world.chunks;
 				let minX           = 0;
 				let minY           = 0;
 				existingChunks.map((existingChunk) =>
@@ -47,20 +47,26 @@ export class GoTo extends BaseAction {
 						}
 					});
 				});
-
-				animateElement.world.worldX = minX;
-				animateElement.world.worldY = minY;
 				
+				console.log('min', minX, minY);
+
+				animateElement.world.position.set(minX, minY);
+				
+				console.log(animateElement.world.position.x, animateElement.world.position.y);
+
+				let world       = animateElement.game.world;
+				let worldLayers = world._layers;
+
 				chunks.map((chunk) =>
 				{
-					let generatedChunk = this.createChunk(chunk.x, chunk.y, animateElement.world);
+					let generatedChunk = this.createChunk(chunk.x, chunk.y, world);
 					let newChunk       = new Chunk(new Vector(chunk.x, chunk.y), generatedChunk.tiles);
-					newChunk.shape     = this.createSingleChunkContainer(newChunk, animateElement.world);
-					animateElement.world.chunks.push(newChunk);
+					newChunk.shape     = this.createSingleChunkContainer(newChunk, world);
+					world.chunks.push(newChunk);
 
-					animateElement.world.camera.worldLayers.chunks.cacheAsBitmap = null;
-					animateElement.world.camera.worldLayers.chunks.addChild(newChunk.shape);
-					animateElement.world.camera.worldLayers.chunks.cacheAsBitmap = true;
+					worldLayers.chunks.cacheAsBitmap = null;
+					worldLayers.chunks.addChild(newChunk.shape);
+					worldLayers.chunks.cacheAsBitmap = true;
 
 					//console.log("Created Chunk");
 				});
@@ -87,10 +93,13 @@ export class GoTo extends BaseAction {
 
 		let chunk = {x: x, y: y, tiles: []};
 
-		let tweak = world.settings.tweak;
+		let settings  = world.game.settings;
+		let chunkSize = settings.chunkSize;
+		let cellSize  = settings.cellSize;
+		let tweak     = settings.tweak;
 
-		for (let _y = y; _y < y + world.settings.chunkSize; _y += world.settings.cellSize) {
-			for (let _x = x; _x < x + world.settings.chunkSize; _x += world.settings.cellSize) {
+		for (let _y = y; _y < y + chunkSize; _y += cellSize) {
+			for (let _x = x; _x < x + chunkSize; _x += cellSize) {
 				let bedrockValue = +Noise.simplex2(_x / tweak, _y / tweak).toFixed(2);
 
 				let treeValue = +Noise.simplex2(_x / tweak / 2, _y / tweak / 2).toFixed(2);
@@ -109,6 +118,7 @@ export class GoTo extends BaseAction {
 
 	createSingleChunkContainer(chunk, world)
 	{
+		let settings = world.game.settings;
 		let chunkContainer = new PIXI.Container();
 		for (let index = 0; index < chunk.tiles.length; index++) {
 			let tile = chunk.tiles[index];
@@ -118,7 +128,7 @@ export class GoTo extends BaseAction {
 			chunkGraphics.position.y = tile.y;
 
 			let color = tile._walkable == false ? 0x000000 : this.getColorFromNoiseValue(tile.noise);
-			chunkGraphics.beginFill(color).drawRect(0, 0, world.settings.cellSize, world.settings.cellSize).endFill();
+			chunkGraphics.beginFill(color).drawRect(0, 0, settings.cellSize, settings.cellSize).endFill();
 
 			chunkContainer.addChild(chunkGraphics);
 		}

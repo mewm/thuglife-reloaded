@@ -9,15 +9,15 @@ export class ThugPlayer extends AnimateElement {
 	 * @param id
 	 * @param name
 	 * @param position
-	 * @param {World} world
-	 * @param shape
+	 * @param {Game} game
 	 */
-	constructor(id, name, position, world, shape)
+	constructor(id, name, position, game)
 	{
-		super(id, position, world, shape);
+		super(id, position, game);
 		this._name   = name;
 		this._timers = [];
 		this._queue  = [];
+		this._shape  = game.engine.ef.createPlayerContainer(this);
 	}
 
 	get name()
@@ -56,14 +56,14 @@ export class ThugPlayer extends AnimateElement {
 	getPathFinderFromClicksAndClearTimers(clickX, clickY, isPlaying, event)
 	{
 
-		let cellSize = this.world.settings.cellSize;
+		let cellSize = this.game.settings.cellSize;
+		let world    = this.game.world;
 
-		let originX = Math.floor((this.shape.x - this.world.worldX) / cellSize);
-		let originY = Math.floor((this.shape.y - this.world.worldY) / cellSize);
-		let moveX   = Math.floor((clickX - this.world.worldX) / cellSize);
-		let moveY   = Math.floor((clickY - this.world.worldY) / cellSize);
-
-		let pathFinder = this.world.pathFinder.clone();
+		let originX    = Math.floor((this.shape.x - world.position.x) / cellSize);
+		let originY    = Math.floor((this.shape.y - world.position.y) / cellSize);
+		let moveX      = Math.floor((clickX - world.position.x) / cellSize);
+		let moveY      = Math.floor((clickY - world.position.y) / cellSize);
+		let pathFinder = this.game.pathFinder.clone();
 		let finder     = new PF.AStarFinder({
 			allowDiagonal: true
 		});
@@ -75,11 +75,11 @@ export class ThugPlayer extends AnimateElement {
 			return item.constructor.name == "GoTo";
 		});
 
-// 		this._timers.map((timer) =>
-// 		{
-// 			clearTimeout(timer);
-// 		});
-//
+		// 		this._timers.map((timer) =>
+		// 		{
+		// 			clearTimeout(timer);
+		// 		});
+		//
 		if (isPlaying) {
 			cn.local([
 				"Currently at grid: " + this._position.x + ',' + this._position.y,

@@ -1,49 +1,44 @@
-import {ElementFactory} from "./elementFactory";
 import PIXI from "../../../node_modules/pixi.js";
 
-export class Camera {
-	constructor(canvas, settings, ticker)
+import {GameEngine} from "../game-engine";
+
+export class Camera extends PIXI.Container {
+	constructor(game)
 	{
-		this.canvas         = canvas;
-		this.settings       = settings;
-		this.ticker         = ticker;
-		this.elementFactory = new ElementFactory(this.settings);
+		super();
+		
+		// Main game
+		this.game     = game;
+		this.settings = game.settings;
+		this.interactive = true;
 
-		// Containers
-		this.gui   = this.elementFactory.createEmptyContainer();
-		this.scene = this.elementFactory.createEmptyContainer();
-		this.prepareWorldContainerWithLayers();
-		this.onResize();
+		// Scene and GUI
+		this.scene = game.scene;
+		this.gui   = GameEngine.createEmptyContainer();
+		super.addChild(this.gui);
 
-		this.renderer = PIXI.autoDetectRenderer(settings.canvasW, settings.canvasH, {backgroundColor: 0x34495e});
-
-		// Main view
-		this.cameraContainer             = new PIXI.Container();
-		this.cameraContainer.interactive = true;
-
-		// Add world and gui to camera
-		this.cameraContainer.addChild(this.scene);
-		this.cameraContainer.addChild(this.gui);
-
-		this.following = null;
-
-		this.fps = 0;
-
-		let textOptions = {
+		// Add camera info
+		this.fps        = 0;
+		this.cameraInfo = new PIXI.Text(this.fps, {
 			font: '16px Arial', fill: 0xffffff, stroke: 0x000000, strokeThickness: 2
-		};
-		this.cameraInfo = new PIXI.Text(this.fps, textOptions);
+		});
+
+		// Trigger resize to adjust canvas
+		this.onResize();
 
 	}
 
 	onResize()
 	{
-		this.settings.canvasW = this.canvas.width() - 300;
-		this.settings.canvasH = this.canvas.height();
+		let settings     = this.settings;
+		
+		console.log(this.game._$canvas.width());
+		settings.canvasW = this.game._$canvas.width() - 300;
+		settings.canvasH = this.game._$canvas.height();
 
 		// Adjust X Y to center on canvas. Adjust pivot to have center of camera on X Y position on world  
-		this.scene.x = this.settings.canvasW / 2; // canvasW/2
-		this.scene.y = this.settings.canvasH / 2; // canvasH/2
+		this.scene.x = settings.canvasW / 2; // canvasW/2
+		this.scene.y = settings.canvasH / 2; // canvasH/2
 	}
 
 	moveTo(x, y)
@@ -90,9 +85,8 @@ export class Camera {
 		return this;
 	}
 
-	addPlayerAndFollow(player)
+	followPlayer(player)
 	{
-		this.scene.addChild(player.shape);
 		this.moveToPlayer(player)
 			.follow(player)
 			.update();
@@ -105,24 +99,19 @@ export class Camera {
 		return this;
 	}
 
-	addToLayer(container, layer)
-	{
-		this.worldLayers[layer].addChild(container);
-	}
-
 	update()
 	{
 		this.tick();
-		this.fps.text        = this.ticker.FPS;
+		this.fps.text        = this.game.ticker.FPS;
 		this.cameraInfo.text = 'Camera/scene pos: ' + this.scene.x + ',' + this.scene.y + ' pivot: ' + this.scene.pivot.x + ',' + this.scene.pivot.y;
-		this.renderer.render(this.cameraContainer);
+		this.game.renderer.render(this);
 	}
 
 	tick()
 	{
 		if (this.following !== null) {
-			this.scene.pivot.x = this.following.shape.x;
-			this.scene.pivot.y = this.following.shape.y;
+// 			this.game.scene.pivot.x = this.following.shape.x;
+// 			this.game.scene.pivot.y = this.following.shape.y;
 		}
 	}
 
@@ -139,34 +128,9 @@ export class Camera {
 
 	addCameraStats()
 	{
-
 		this.cameraInfo.x = 400;
 		this.cameraInfo.y = 10;
 		this.gui.addChild(this.cameraInfo);
-	}
-
-	prepareWorldContainerWithLayers()
-	{
-		// Create world container
-		this.worldLayers      = {
-			chunks: this.elementFactory.createEmptyContainer(),
-			trees: this.elementFactory.createEmptyContainer(),
-			thugPlayers: this.elementFactory.createEmptyContainer()
-		};
-		this.debugWorldLayers = {
-			tile: this.elementFactory.createEmptyContainer(),
-			chunk: this.elementFactory.createEmptyContainer()
-		};
-
-		// To world container
-		_.map(this.worldLayers, (layer, key) =>
-		{
-			this.scene.addChild(layer);
-		});
-		_.map(this.debugWorldLayers, (layer) =>
-		{
-			this.scene.addChildAt(layer, 2);
-		});
 	}
 
 	debugVisibility(key, toggle)
@@ -180,7 +144,7 @@ export class Camera {
 	 */
 	setDebugLayerVisibility(key, visibility)
 	{
-		this.debugWorldLayers[key].visible = visibility;
+		this.game.world._debugLayers[key].visible = visibility;
 	}
 
 }
