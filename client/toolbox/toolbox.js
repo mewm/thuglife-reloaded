@@ -66,7 +66,7 @@ Template.toolbox.events({
 			alreadyFollowingPlayer = true;
 		}
 		let index  = $(event.target).data('thug-index');
-		let player = template.data.thugPlayers[index];
+		let player = template.data.world.thugPlayers[index];
 		toggleFollowPlayer(player, template, event, alreadyFollowingPlayer);
 	},
 

@@ -5,12 +5,12 @@ export class Vector {
 		this._y = y;
 	}
 
-	fixForPathfinder(worldX, worldY)
+	fixForPathfinder(worldX, worldY, cellSize)
 	{
 		if (!worldX || !worldY) {
 			return;
 		}
-		this.set(this.x + worldX / 32, this.y + worldY / 32);
+		this.set(this.x + worldX / cellSize, this.y + worldY / cellSize);
 	}
 
 	get x()

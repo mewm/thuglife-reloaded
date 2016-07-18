@@ -70,16 +70,15 @@ export class Game {
 	{
 		let worldData = this._collections.worldMap.find().fetch();
 
-
 		// Load player, then thug players
 		this.installPlayer(() =>
 		{
 			this.installMap(worldData);
 			this.installTrees(worldData);
 			this.installDebugLayer(worldData);
+			this.installThugPlayers();
 			
 			this.addLayersToScene();
-			this.installThugPlayers();
 			this.setupInputHandling();
 			$(window).resize(this.camera.onResize.bind(this.camera));
 			callback();
@@ -134,7 +133,7 @@ export class Game {
 		if (this.player !== null) {
 			return;
 		}
-		Meteor.call('findOrInsertPlayer', {name: Session.get('thugName')},
+		Meteor.call('findOrInsertPlayer', Session.get('thugName'),
 			(err, player) =>
 			{
 				if (err) {
@@ -178,7 +177,7 @@ export class Game {
 		});
 
 		// Add debug layers
-		_.map(this.world._layers, (layer) =>
+		_.map(this.world._debugLayers, (layer) =>
 		{
 			this.scene.addChild(layer);
 		});

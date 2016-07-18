@@ -17,7 +17,7 @@ export class GameSettings {
 
 		this.debug = {
 			tile: new ReactiveVar(false),
-			chunk: new ReactiveVar(false)
+			chunk: new ReactiveVar(true)
 		}
 	}
 }

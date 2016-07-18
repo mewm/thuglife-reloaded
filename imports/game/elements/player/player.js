@@ -46,7 +46,7 @@ export class Player extends ThugPlayer {
 		path.map((v) =>
 		{
 			let vector = new Vector(v[0], v[1]);
-			vector.fixForPathfinder(world.position.x, world.position.y);
+			vector.fixForPathfinder(world.position.x, world.position.y, settings.cellSize);
 			// 			let timeout = setTimeout(() =>
 			// 			{
 			super.queue(new GoTo(vector));

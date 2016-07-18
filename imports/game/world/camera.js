@@ -94,7 +94,7 @@ export class Camera extends PIXI.Container {
 
 	moveToPlayer(player)
 	{
-		this.moveTo(player.shape.x, player.shape.y);
+		this.moveTo(player.position.x, player.position.y);
 		return this;
 	}
 
@@ -109,8 +109,8 @@ export class Camera extends PIXI.Container {
 	tick()
 	{
 		if (this.following !== null) {
-// 			this.game.scene.pivot.x = this.following.shape.x;
-// 			this.game.scene.pivot.y = this.following.shape.y;
+			this.game.scene.pivot.x = this.following.shape.x;
+			this.game.scene.pivot.y = this.following.shape.y;
 		}
 	}
 
