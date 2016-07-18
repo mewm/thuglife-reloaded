@@ -34,7 +34,7 @@ export class Game {
 
 	hotReload()
 	{
-		console.log('Hot reloaded', this);
+// 		console.log('Hot reloaded', this);
 	}
 
 	start()
@@ -69,15 +69,17 @@ export class Game {
 	initialize(callback)
 	{
 		let worldData = this._collections.worldMap.find().fetch();
-		this.installMap(worldData);
-		this.installTrees(worldData);
-		this.installDebugLayer(worldData);
+
 
 		// Load player, then thug players
 		this.installPlayer(() =>
 		{
-			this.installThugPlayers();
+			this.installMap(worldData);
+			this.installTrees(worldData);
+			this.installDebugLayer(worldData);
+			
 			this.addLayersToScene();
+			this.installThugPlayers();
 			this.setupInputHandling();
 			$(window).resize(this.camera.onResize.bind(this.camera));
 			callback();
@@ -86,8 +88,9 @@ export class Game {
 
 	setupInputHandling()
 	{
-		this.camera.mousedown = this.player.onClick.bind(this.player);
-		this.camera.tap       = this.player.onClick.bind(this.player);
+		this.scene.interactive = true;
+		this.scene.mousedown = this.player.onClick.bind(this.player);
+		this.scene.tap       = this.player.onClick.bind(this.player);
 	}
 
 	listenToNewThugPlayers(playerEvent)
@@ -147,7 +150,7 @@ export class Game {
 
 	installThugPlayers()
 	{
-		let thugPlayers = Players.find({nickname: {$ne: this.thugName}}).fetch();
+		let thugPlayers = Players.find({nickname: {$ne: this.player.name}}).fetch();
 		thugPlayers.map((thugPlayer) =>
 		{
 			let player = new ThugPlayer(thugPlayer._id, thugPlayer['nickname'], new Vector(thugPlayer.x, thugPlayer.y), this);
@@ -180,8 +183,9 @@ export class Game {
 			this.scene.addChild(layer);
 		});
 
-		// Add scene to camera
-		this.camera.addChild(this.scene);
+		// Add player to scene and scene to camera
+		this.scene.addChild(this.player.shape);
+		this.camera.addChildAt(this.scene, 0);
 	}
 
 	createChunkFromData(primitiveChunk)

@@ -28,7 +28,6 @@ export class GoTo extends BaseAction {
 	{
 		animateElement.moveTo(this.destination);
 		if (animateElement.isAtTileCoordinate(this.destination)) {
-
 			if (animateElement.game.player.id == animateElement.id) {
 				let dumpChunks     = [];
 				let chunks         = animateElement.getNewChunkPositionsFromPlayerPosition();
@@ -48,11 +47,7 @@ export class GoTo extends BaseAction {
 					});
 				});
 				
-				console.log('min', minX, minY);
-
 				animateElement.world.position.set(minX, minY);
-				
-				console.log(animateElement.world.position.x, animateElement.world.position.y);
 
 				let world       = animateElement.game.world;
 				let worldLayers = world._layers;

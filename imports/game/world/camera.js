@@ -32,7 +32,6 @@ export class Camera extends PIXI.Container {
 	{
 		let settings     = this.settings;
 		
-		console.log(this.game._$canvas.width());
 		settings.canvasW = this.game._$canvas.width() - 300;
 		settings.canvasH = this.game._$canvas.height();
 

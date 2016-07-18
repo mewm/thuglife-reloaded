@@ -36,6 +36,7 @@ export class Player extends ThugPlayer {
 		let scene    = this.game.scene;
 		let settings = this.game.settings;
 		let world    = this.game.world;
+
 		// Calculate absolute coordinates
 		let clickX   = event.data.global.x + (scene.pivot.x - settings.canvasW / 2);
 		let clickY   = event.data.global.y + (scene.pivot.y - settings.canvasH / 2);

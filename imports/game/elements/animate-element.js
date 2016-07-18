@@ -41,7 +41,6 @@ export class AnimateElement extends BaseElement {
 			if (this._queue.length == 0) {
 				Players.update({_id: this.id}, {$set: {x: this._position._x, y: this._position._y}});
 			}
-			// 			console.log(this.queue);
 			this.actionsPerformed.push(this.isThugging);
 			this.isThugging = null;
 
@@ -51,8 +50,9 @@ export class AnimateElement extends BaseElement {
 	isAtTileCoordinate(vector)
 	{
 		let cellSize = this.game.settings.cellSize;
-		let x        = Math.floor(this.position.x / cellSize);
-		let y        = Math.floor(this.position.y / cellSize);
+		let x        = Math.round(this.position.x / cellSize);
+		let y        = Math.round(this.position.y / cellSize);
+
 		if (vector._x == x && vector._y == y) {
 			return true;
 		}
@@ -64,6 +64,7 @@ export class AnimateElement extends BaseElement {
 		let cellSize = this.game.settings.cellSize;
 		let x        = vector.x * cellSize;
 		let y        = vector.y * cellSize;
+
 		this.shape.x = x;
 		this.shape.y = y;
 		this.position.set(x, y);
@@ -71,7 +72,7 @@ export class AnimateElement extends BaseElement {
 
 	getChunkPosition(x, y)
 	{
-		let settings = this.game.settings;
+		let settings  = this.game.settings;
 		let worldSize = settings.chunkSize * settings.chunks;
 		let chunkSize = settings.chunkSize;
 		let chunkX    = Math.floor((worldSize / chunkSize) / (worldSize / x)) * chunkSize;
@@ -82,7 +83,7 @@ export class AnimateElement extends BaseElement {
 
 	getNewChunkPositionsFromPlayerPosition()
 	{
-		let settings = this.game.settings;
+		let settings        = this.game.settings;
 		let worldSize       = settings.chunkSize * settings.chunks;
 		let chunkSize       = settings.chunkSize;
 		let chunkLoadRadius = 3;

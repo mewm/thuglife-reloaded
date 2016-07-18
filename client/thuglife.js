@@ -13,7 +13,7 @@ ThugLog      = new Mongo.Collection("ThugLog");
 LocalLog     = new Mongo.Collection(null);
 cn           = logger.bootstrap(LocalLog, ThugLog);
 
-Template.game.onCreated(function()
+Template.thuglife.onCreated(function()
 {
 	this.gameState = new ReactiveVar('NOT_LOADED');
 
@@ -32,7 +32,7 @@ Template.game.onCreated(function()
 
 });
 
-Template.game.onRendered(function()
+Template.thuglife.onRendered(function()
 {
 	this.game = null;
 	Tracker.autorun(() =>
@@ -48,9 +48,9 @@ Template.game.onRendered(function()
 				});
 				this.game.initialize(() =>
 				{
-					console.log('LOADED');
 					this.gameState.set('LOADED');
 					this.game.start();
+					cn.local('Game startet, start thuggin!');
 				});
 			} else if (this.gameState.get() == 'LOADED') {
 				this.game.hotReload();
@@ -87,7 +87,7 @@ Template.game.onRendered(function()
 
 });
 
-Template.game.helpers({
+Template.thuglife.helpers({
 	gameLoaded: function()
 	{
 		if (Template.instance().gameState.get() === 'LOADED') {

@@ -6,7 +6,7 @@ PIXI.utils._saidHello = true;
 export class World {
 	constructor(game)
 	{
-		this.game       = game;
+		this.game        = game;
 		this.chunks      = [];
 		this.thugs       = [];
 		this.objects     = [];
@@ -21,7 +21,7 @@ export class World {
 	{
 		return this._position;
 	}
-	
+
 	initialiseLayers()
 	{
 		// Create world container
@@ -59,11 +59,10 @@ export class World {
 		// 		cn.local('Loaded thugs: <b>' + thugPlayers.length + '</b>', thugPlayers, 'success');
 		// Playing player should be added straight to the scene
 		if (player === this.game.player) {
-			this.game.scene.addChild(player.shape);
+
 		} else {
 			this.thugPlayers.push(player);
 			this._layers.thugPlayers.addChild(player.shape);
 		}
 	}
-
 }

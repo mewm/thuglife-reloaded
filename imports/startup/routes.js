@@ -1,7 +1,7 @@
 FlowRouter.route('/', {
 	name: 'World',
 	action(params, queryParams) {
-		BlazeLayout.render('game-layout', { main: "game"});
+		BlazeLayout.render('game-layout', { main: "thuglife"});
 	}
 });
 

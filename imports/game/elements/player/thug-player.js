@@ -59,8 +59,9 @@ export class ThugPlayer extends AnimateElement {
 		let cellSize = this.game.settings.cellSize;
 		let world    = this.game.world;
 
-		let originX    = Math.floor((this.shape.x - world.position.x) / cellSize);
-		let originY    = Math.floor((this.shape.y - world.position.y) / cellSize);
+		let originX = Math.floor((this.shape.x - world.position.x) / cellSize);
+		let originY = Math.floor((this.shape.y - world.position.y) / cellSize);
+
 		let moveX      = Math.floor((clickX - world.position.x) / cellSize);
 		let moveY      = Math.floor((clickY - world.position.y) / cellSize);
 		let pathFinder = this.game.pathFinder.clone();

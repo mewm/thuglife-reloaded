@@ -10,7 +10,7 @@ export class Vector {
 		if (!worldX || !worldY) {
 			return;
 		}
-		this.set(worldX / 32, worldY / 32);
+		this.set(this.x + worldX / 32, this.y + worldY / 32);
 	}
 
 	get x()
